@@ -1,9 +1,11 @@
 package metadata;
 
 import constants.Constants;
+import utils.Tools;
 
 import java.io.IOException;
 import java.io.RandomAccessFile;
+import java.util.Collections;
 import java.util.Date;
 import java.util.Vector;
 
@@ -18,8 +20,8 @@ public class MetadataHandler {
     public void writeInitialMetadata(String databaseName) throws IOException {
         writeDatabaseNameWithPadding(databaseName);
         writeInitialValues();
+        initializeBitmap();
     }
-
 
     private void writeDatabaseNameWithPadding(String string) throws IOException {
         byte[] stringBytes = string.getBytes();
@@ -39,6 +41,8 @@ public class MetadataHandler {
         writeLongValue(Constants.CREATE_DATE_OFFSET, new Date().getTime());
         writeIntValue(Constants.BLOCK_SIZE_OFFSET, Constants.BLOCK_SIZE);
         writeBytePadding(Constants.FCB_LIST_OFFSET, Constants.FCB_LIST_SIZE);
+        writeIntValue(Constants.TOTAL_BLOCK_OFFSET, (Constants.FILE_INNIT_SIZE-Constants.HEADER_SIZE)/ Constants.BLOCK_SIZE);
+        System.out.println("Meta initial Total block: " + (Constants.FILE_INNIT_SIZE-Constants.HEADER_SIZE)/ Constants.BLOCK_SIZE);
     }
 
     private void writeIntValue(long offset, int value) throws IOException {
@@ -61,7 +65,8 @@ public class MetadataHandler {
     }
 
     public void updateBitmapInMetadata(byte[] bitmapBytes, int totalBlock) throws IOException {
-        file.seek(Constants.BITMAP_OFFSET);
+        System.out.println("Meta update Total block: " + totalBlock);
+        file.seek(Constants.TOTAL_BLOCK_OFFSET);
         file.writeInt(totalBlock);
         file.seek(Constants.BITMAP_OFFSET);
         file.write(bitmapBytes);
@@ -114,6 +119,11 @@ public class MetadataHandler {
         return buffer;
     }
 
+    public int readTotalBlock() throws IOException {
+        file.seek(Constants.TOTAL_BLOCK_OFFSET);
+        return file.readInt();
+    }
+
 //    public byte[] readBitmapFromMetadata(int bitmapSize) throws IOException {
 //        file.seek(Constants.BITMAP_OFFSET);
 //        byte[] bitmapBytes = new byte[bitmapSize];
@@ -121,17 +131,14 @@ public class MetadataHandler {
 //        return bitmapBytes;
 //    }
 
-    /**
-     * Read bitmap from metadata
-     * @return Vector of boolean
-     */
-    public Vector<Boolean> readBitmapFromMetadata () {
+    public Vector<Boolean> readBitmapFromMetadata() {
         Vector<Boolean> bitmap = new Vector<>();
         try {
             file.seek(Constants.TOTAL_BLOCK_OFFSET);
             int totalBlock = file.readInt();
+            int byteCount = (int) Math.ceil(totalBlock / 8.0);
             file.seek(Constants.BITMAP_OFFSET);
-            byte[] bitmapBytes = new byte[totalBlock];
+            byte[] bitmapBytes = new byte[byteCount];
             file.read(bitmapBytes);
             for (byte b : bitmapBytes) {
                 for (int i = 0; i < 8; i++) {
@@ -144,4 +151,12 @@ public class MetadataHandler {
         return bitmap;
     }
 
+    private void initializeBitmap() throws IOException {
+        int totalBlocks = readTotalBlock();
+        Vector<Boolean> bitmap = new Vector<>(Collections.nCopies(totalBlocks, false));
+        byte[] bitmapBytes = Tools.getBitmapAsBytes(bitmap);
+        updateBitmapInMetadata(bitmapBytes, totalBlocks);
+        Tools.printBitmap(readBitmapFromMetadata());
+
+    }
 }
