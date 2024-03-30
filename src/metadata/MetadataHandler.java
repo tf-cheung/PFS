@@ -156,7 +156,6 @@ public class MetadataHandler {
         Vector<Boolean> bitmap = new Vector<>(Collections.nCopies(totalBlocks, false));
         byte[] bitmapBytes = Tools.getBitmapAsBytes(bitmap);
         updateBitmapInMetadata(bitmapBytes, totalBlocks);
-        Tools.printBitmap(readBitmapFromMetadata());
-
+//        Tools.printBitmap(readBitmapFromMetadata());
     }
 }

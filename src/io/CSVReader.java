@@ -4,6 +4,7 @@ import manager.BlockManager;
 import manager.FCBManager;
 import metadata.MetadataHandler;
 import model.FileControlBlock;
+import utils.Tools;
 
 import javax.swing.*;
 import java.io.BufferedReader;
@@ -48,14 +49,19 @@ public class CSVReader {
                 dataSize += movieData.toString().getBytes().length;
 //                System.out.println("Data size for line " + lineNumber + ": " + dataSize);
 
-                writer.write(movieData);
+                writer.write(blockManager,movieData);
                 lineNumber++;
 //                System.out.println( "lineNumber: " + lineNumber);
             }
+            blockManager.printBlockUsage();
+
 //            writer.setFCBFilesize(dataSize);
 //            writer.setFCBUsedBlocks();
             dataSize = 0;
 //            writer.writeBitmapToHeader();
+            blockManager.printBlockUsage();
+
+            System.out.println(blockManager.getTotalBlocks());
             MetadataHandler metadataHandler = new MetadataHandler(database);
             metadataHandler.updateBitmapInMetadata(blockManager.getBitmapAsBytes(),blockManager.getTotalBlocks());
             lineNumber=1;

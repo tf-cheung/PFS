@@ -8,6 +8,7 @@ import manager.IndexManager;
 import metadata.MetadataHandler;
 import model.FileControlBlock;
 import utils.ApplicationContext;
+import utils.Tools;
 
 
 import java.io.IOException;
@@ -68,7 +69,7 @@ public class Main {
         fileCreator = new FileCreator();
         file = fileCreator.openFile(dbFile);
         System.out.println("************************File 1*********************************");
-        csvFileName = "movie.csv"  ;
+        csvFileName = "movies.csv";
         FCBManager fcbManager = new FCBManager();
         ApplicationContext.setCsvFileName(csvFileName);
         ApplicationContext.setDbFileName(dbFile);
@@ -122,7 +123,10 @@ public class Main {
         metadataHandler = new MetadataHandler(file);
         System.out.println(metadataHandler.readTotalBlock());
         metadataHandler.readBitmapFromMetadata();
+
 //        blockManager.printBlockUsage();
+
+        Tools.printBitmap(metadataHandler.readBitmapFromMetadata());
 
 //        blockWriter.printIndexTree();
 //        blockWriter.readIndexFromFile();

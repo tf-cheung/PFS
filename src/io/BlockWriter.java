@@ -8,6 +8,7 @@ import java.util.*;
 
 import model.FileControlBlock;
 import utils.SerializationUtils;
+import utils.Tools;
 
 public class BlockWriter {
     private RandomAccessFile file;
@@ -35,7 +36,7 @@ public class BlockWriter {
         file.write(bitmapBytes);
     }
 
-    public void write(Map<String, String> rawData) throws IOException {
+    public void write(BlockManager blockManager, Map<String, String> rawData) throws IOException {
         String serializedData = serializationUtils.serializeData(rawData);
         byte[] dataBytes  = serializedData.getBytes();
         int dataOffset = 0;
@@ -44,6 +45,8 @@ public class BlockWriter {
             if (currentBlockIndex == -1) {
                 // 如果当前没有可用的块,则找到下一个空闲块
                 currentBlockIndex = blockManager.findFirstFreeBlock();
+                System.out.println("没有空闲块。。。");
+                System.out.println("currentBlockIndex: " + currentBlockIndex);
                 currentPosition = 0;
                 blockManager.setBlockUsed( currentBlockIndex, true);
                 usedBlocks++;
@@ -78,7 +81,6 @@ public class BlockWriter {
             indexTree.put(dataId, currentBlockIndex);
 //            System.out.println("Data ID: " + dataId + ", Block index: " + currentBlockIndex);
         }
-//
     }
 
 

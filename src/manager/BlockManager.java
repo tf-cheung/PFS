@@ -46,7 +46,6 @@ import java.util.Vector;
 public class BlockManager {
     private Vector<Boolean> bitmap; // 用于跟踪块的分配情况
     private int totalBlocks; // 当前文件的总块数
-
     private RandomAccessFile file;
 
 
@@ -74,8 +73,8 @@ public class BlockManager {
     }
 
     public synchronized int allocateBlock(int startIndex) throws IOException {
-        MetadataHandler metadataHandler = new MetadataHandler(file);
-        metadataHandler.readBitmapFromMetadata();
+//        MetadataHandler metadataHandler = new MetadataHandler(file);
+//        metadataHandler.readBitmapFromMetadata();
 
 
 //        System.out.println("startIndex: " + startIndex);
@@ -201,11 +200,19 @@ public class BlockManager {
         return -1;
     }
 
+//    public boolean isBlockUsed(int blockIndex) throws IOException {
+//        MetadataHandler metadataHandler = new MetadataHandler(file);
+//        Vector<Boolean> bitmap = metadataHandler.readBitmapFromMetadata();
+//        return bitmap.get(blockIndex);
+//    }
+
     public boolean isBlockUsed(int blockIndex) throws IOException {
-        MetadataHandler metadataHandler = new MetadataHandler(file);
-        Vector<Boolean> bitmap = metadataHandler.readBitmapFromMetadata();
+//        MetadataHandler metadataHandler = new MetadataHandler(file);
+//        Vector<Boolean> bitmap = metadataHandler.readBitmapFromMetadata();
         return bitmap.get(blockIndex);
     }
+
+
     public int getAvailableBlocks() {
         int availableBlocks = 0;
         for (boolean isUsed : bitmap) {
