@@ -72,10 +72,12 @@ public class Main {
         csvFileName = "movies.csv";
         FCBManager fcbManager = new FCBManager();
         ApplicationContext.setCsvFileName(csvFileName);
+
         ApplicationContext.setDbFileName(dbFile);
         BlockManager blockManager = new BlockManager(file);
         BlockWriter blockWriter = new BlockWriter(file, blockManager);
         CSVReader reader = new CSVReader(blockWriter);
+
         MetadataHandler metadataHandler = new MetadataHandler(file);
         metadataHandler.readBitmapFromMetadata();
         System.out.println(("Total blocks: "+metadataHandler.readTotalBlock()));
@@ -126,7 +128,8 @@ public class Main {
 
 //        blockManager.printBlockUsage();
 
-        Tools.printBitmap(metadataHandler.readBitmapFromMetadata());
+//        Tools.printBitmap(metadataHandler.readBitmapFromMetadata());
+        System.out.println(metadataHandler.readTotalBlock());
 
 //        blockWriter.printIndexTree();
 //        blockWriter.readIndexFromFile();

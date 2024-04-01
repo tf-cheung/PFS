@@ -52,7 +52,7 @@ public class BlockManager {
 
     // 构造方法
     public BlockManager() {
-        this.totalBlocks = (Constants.FILE_INNIT_SIZE - Constants.HEADER_BLOCKS) / Constants.BLOCK_SIZE;
+        this.totalBlocks = (Constants.FILE_INNIT_SIZE - Constants.HEADER_SIZE) / Constants.BLOCK_SIZE;
         this.bitmap = new Vector<>(totalBlocks);
         initializeBitmap();
     }
@@ -62,6 +62,7 @@ public class BlockManager {
         MetadataHandler metadataHandler = new MetadataHandler(file);
         long fileSize = metadataHandler.readDatabaseSize();
         this.totalBlocks = (int) ((fileSize - Constants.HEADER_SIZE) / Constants.BLOCK_SIZE);
+
         this.bitmap = new Vector<>(totalBlocks);
         initializeBitmap();
     }
@@ -168,6 +169,17 @@ public class BlockManager {
 
         return bytes;
     }
+
+    public int getUsedBlocks() {
+        int usedBlocks = 0;
+        for (boolean isUsed : bitmap) {
+            if (isUsed) {
+                usedBlocks++;
+            }
+        }
+        return usedBlocks;
+    }
+
     public long getRemainingSpace(RandomAccessFile file) throws IOException {
         int usedBlocks = 0;
         for (boolean isUsed : bitmap) {

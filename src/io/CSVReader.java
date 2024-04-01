@@ -26,6 +26,8 @@ public class CSVReader {
     }
 
     public void readAndWriteCSV(RandomAccessFile database, String csvFileName) {
+        System.out.println("block changing: "+blockManager.getTotalBlocks());
+
         try (BufferedReader reader = new BufferedReader(new FileReader(csvFileName))) {
             String line;
             boolean isFirstLine = true;
@@ -33,10 +35,10 @@ public class CSVReader {
 
             // 重置读取器到文件开头
             isFirstLine = true;
+
             FileControlBlock fcb = new FileControlBlock(fileName, 0, 0, 0, 0, 0);
             fcbManager.updateOrAddFCBInMetadata(database,fcb);
             BTreeIndex.resetNextId();
-
             while ((line = reader.readLine()) != null) {
                 if (isFirstLine) {
                     isFirstLine = false;
@@ -53,16 +55,18 @@ public class CSVReader {
                 lineNumber++;
 //                System.out.println( "lineNumber: " + lineNumber);
             }
-            blockManager.printBlockUsage();
+//            blockManager.printBlockUsage();
 
-//            writer.setFCBFilesize(dataSize);
-//            writer.setFCBUsedBlocks();
-            dataSize = 0;
-//            writer.writeBitmapToHeader();
-            blockManager.printBlockUsage();
-
-            System.out.println(blockManager.getTotalBlocks());
             MetadataHandler metadataHandler = new MetadataHandler(database);
+
+//            fcb = fcbManager.findFCBByFileName(database,csvFileName);
+
+            fcb.setFileSize(dataSize);
+            fcb.setUsedBlocks(blockManager.getUsedBlocks());
+            fcbManager.updateOrAddFCBInMetadata(database,fcb);
+
+
+            dataSize = 0;
             metadataHandler.updateBitmapInMetadata(blockManager.getBitmapAsBytes(),blockManager.getTotalBlocks());
             lineNumber=1;
 

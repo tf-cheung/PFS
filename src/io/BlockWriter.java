@@ -6,6 +6,7 @@ import index.BTreeIndex;
 import java.io.*;
 import java.util.*;
 
+import metadata.MetadataHandler;
 import model.FileControlBlock;
 import utils.SerializationUtils;
 import utils.Tools;
@@ -44,6 +45,7 @@ public class BlockWriter {
 
             if (currentBlockIndex == -1) {
                 // 如果当前没有可用的块,则找到下一个空闲块
+
                 currentBlockIndex = blockManager.findFirstFreeBlock();
                 System.out.println("没有空闲块。。。");
                 System.out.println("currentBlockIndex: " + currentBlockIndex);
@@ -65,6 +67,8 @@ public class BlockWriter {
                 currentPosition = 0;
                 usedBlocks++; // 每分配一个新块,已使用的块数加 1
             }
+
+
 
             int remainingDataToWrite = dataBytes .length - dataOffset;
             int bytesToWrite = Math.min(Constants.BLOCK_SIZE - currentPosition, remainingDataToWrite);
