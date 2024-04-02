@@ -52,7 +52,6 @@ public class SerializationUtils {
 
         // 读取 index.BTreeIndex 的元数据
         int size = dis.readInt(); // 读取索引树中的键值对数量
-        System.out.println("Index Size: " + size);
         int height = dis.readInt(); // 读取索引树的高度
 
         BTreeIndex indexTree = new BTreeIndex();

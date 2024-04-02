@@ -45,7 +45,6 @@ public class BlockWriter {
 
             if (currentBlockIndex == -1) {
                 // 如果当前没有可用的块,则找到下一个空闲块
-
                 currentBlockIndex = blockManager.findFirstFreeBlock();
                 System.out.println("没有空闲块。。。");
                 System.out.println("currentBlockIndex: " + currentBlockIndex);

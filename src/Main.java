@@ -116,11 +116,14 @@ public class Main {
         System.out.println("Block number: "+tempFCB.getUsedBlocks());
         System.out.println("Start block: "+tempFCB.getStartBlock());
 //        System.out.println("========================Search data============================");
-            BTreeIndex result = indexManager.readIndexFromFile(file, ApplicationContext.getCsvFileName());
-            System.out.println(result.toString());
 
+//            System.out.println(result.toString());
+
+
+
+        System.out.println("=======================Search result===========================");
+        BTreeIndex result = indexManager.readIndexFromFile(file, ApplicationContext.getCsvFileName());
         System.out.println("Block #" + result.get(22));
-//
         System.out.println("found movie data: " + blockWriter.readData(result.get(22),22));
 
         metadataHandler = new MetadataHandler(file);
@@ -150,19 +153,65 @@ public class Main {
         System.out.println("");
         System.out.println("");
 
-//        System.out.println("************************File 2*********************************");
-////
-//        csvFileName = "rating.csv"  ;
-//        ApplicationContext.setCsvFileName(csvFileName);
-//        ApplicationContext.setDbFileName(dbFile);
-//        fcbManager = new FCBManager();
-//        blockManager = new BlockManager(file);
-//        blockWriter = new BlockWriter(file, blockManager);
-//        reader = new CSVReader(blockWriter);
-//        reader.readAndWriteCSV(file,csvFileName);
-//        System.out.println("fcblist size: " + fcbManager.readFCBListFromMetadata(file).size());
-//        System.out.println("fcb Name: "+ fcbManager.readFCBListFromMetadata(file).get(0).getFileName());
-//        IndexManager indexManager1 = new IndexManager();
+        System.out.println("************************File 2*********************************");
+//
+        csvFileName = "rating.csv"  ;
+        ApplicationContext.setCsvFileName(csvFileName);
+        ApplicationContext.setDbFileName(dbFile);
+        fcbManager = new FCBManager();
+        blockManager = new BlockManager(file);
+        blockWriter = new BlockWriter(file, blockManager);
+        reader = new CSVReader(blockWriter);
+        reader.readAndWriteCSV(file,csvFileName);
+        System.out.println("fcblist size: " + fcbManager.readFCBListFromMetadata(file).size());
+        System.out.println("fcb Name: "+ fcbManager.readFCBListFromMetadata(file).get(0).getFileName());
+
+        blockWriter.writeBitmapToHeader();
+        indexManager = new IndexManager();
+        indexManager.writeIndexToFile(file,blockManager, blockWriter.getIndexTree());
+
+        blocklist = fcbManager.readFCBListFromMetadata(file);
+
+        tempFCB=null;
+
+        for (FileControlBlock block : blocklist) {
+            System.out.println("block1: " + block.getFileName());
+        }
+
+        // print blocklist
+        for (FileControlBlock block : blocklist) {
+            if(block.getFileName().equals(ApplicationContext.getCsvFileName())){
+                tempFCB = block;
+                System.out.println("tempFCB: " + tempFCB.getFileName() );
+                break;
+            }
+        }
+
+
+        System.out.println("========================FCB info===============================");
+        System.out.println("File name: "+tempFCB.getFileName());
+        System.out.println("Index start: "+tempFCB.getIndexStartPosition());
+        System.out.println("Index end: "+tempFCB.getIndexEndPosition());
+        System.out.println("File size: "+tempFCB.getFileSize());
+        System.out.println("Block number: "+tempFCB.getUsedBlocks());
+        System.out.println("Start block: "+tempFCB.getStartBlock());
+
+        System.out.println("=======================Search result： rating ===========================");
+        result = indexManager.readIndexFromFile(file, ApplicationContext.getCsvFileName());
+        System.out.println("Block #" + result.get(11));
+        System.out.println("found movie data: " + blockWriter.readData(result.get(11),11));
+
+
+
+        System.out.println("=======================Search result: movie===========================");
+
+        ApplicationContext.setCsvFileName("movies.csv");
+        result = indexManager.readIndexFromFile(file, ApplicationContext.getCsvFileName());
+        System.out.println("Block #" + result.get(22));
+        System.out.println("found movie data: " + blockWriter.readData(result.get(22),22));
+
+
+
 //
 //
 //
@@ -268,7 +317,7 @@ public class Main {
 
 
 
-//        reader.close();
+        reader.close();
     }
 
 

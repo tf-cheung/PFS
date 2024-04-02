@@ -1,6 +1,7 @@
 package manager;
 import constants.Constants;
 import metadata.MetadataHandler;
+import utils.Tools;
 
 
 import java.io.IOException;
@@ -63,8 +64,16 @@ public class BlockManager {
         long fileSize = metadataHandler.readDatabaseSize();
         this.totalBlocks = (int) ((fileSize - Constants.HEADER_SIZE) / Constants.BLOCK_SIZE);
 
-        this.bitmap = new Vector<>(totalBlocks);
-        initializeBitmap();
+        Vector<Boolean> bitmapFromMetadata = metadataHandler.readBitmapFromMetadata();
+        if (bitmapFromMetadata != null && bitmapFromMetadata.size() == totalBlocks) {
+            // 如果元数据中存在有效的bitmap,则使用它
+            this.bitmap = bitmapFromMetadata;
+        } else {
+            // 如果元数据中不存在有效的bitmap,则创建一个新的bitmap
+            this.bitmap = new Vector<>(totalBlocks);
+            initializeBitmap();
+        }
+
     }
 
     private void initializeBitmap() {
