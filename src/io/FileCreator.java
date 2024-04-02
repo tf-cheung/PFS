@@ -53,13 +53,12 @@ public class FileCreator {
         metadataHandler.writeInitialMetadata( databaseName);
     }
 
-    public void extendFile(RandomAccessFile file, long extendSize) throws IOException {
+    public void extendFile(RandomAccessFile file,BlockManager blockManager,  long extendSize) throws IOException {
         long currentSize = file.length();
         file.setLength(currentSize + extendSize);
         MetadataHandler metadataHandler = new MetadataHandler(file);
         metadataHandler.updateFileSizeInMetadata(currentSize + extendSize);
         System.out.println("File extended to " + (currentSize + extendSize) + " bytes.");
-        BlockManager blockManager = new BlockManager(file);
         blockManager.expand(file, currentSize + extendSize);
 
     }

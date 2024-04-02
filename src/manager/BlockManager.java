@@ -130,7 +130,7 @@ public class BlockManager {
 
     public synchronized void expand(RandomAccessFile file, long newFileSize) throws IOException {
 
-        long newTotalBlocks = newFileSize-Constants.HEADER_SIZE / Constants.BLOCK_SIZE;
+        long newTotalBlocks = (newFileSize-Constants.HEADER_SIZE) / Constants.BLOCK_SIZE;
         int oldBitmapSize = bitmap.size();
 
         // 创建一个新的位图向量

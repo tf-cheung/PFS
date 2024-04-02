@@ -155,7 +155,7 @@ public class Main {
 
         System.out.println("************************File 2*********************************");
 //
-        csvFileName = "rating.csv"  ;
+        csvFileName = "ratings.csv"  ;
         ApplicationContext.setCsvFileName(csvFileName);
         ApplicationContext.setDbFileName(dbFile);
         fcbManager = new FCBManager();

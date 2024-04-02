@@ -51,6 +51,7 @@ public class BlockWriter {
                 currentPosition = 0;
                 blockManager.setBlockUsed( currentBlockIndex, true);
                 usedBlocks++;
+                System.out.println("Used blocks: " + usedBlocks);
             }
             if (currentBlockIndex == -1 || Constants.BLOCK_SIZE - currentPosition < dataBytes .length - dataOffset) {
                 // 如果当前块剩余空间不足,则分配新块
@@ -58,13 +59,14 @@ public class BlockWriter {
 //                System.out.println("Allocated block: " + currentBlockIndex);
                 if (currentBlockIndex == -1) {
                     FileCreator fileCreator = new FileCreator();
-                    fileCreator.extendFile(file, Constants.FILE_INNIT_SIZE);
+                    fileCreator.extendFile(file,blockManager, Constants.FILE_INNIT_SIZE);
                     currentBlockIndex = blockManager.allocateBlock(currentBlockIndex + 1);
                     System.out.println("Allocated block: " + currentBlockIndex);
                 }
 
                 currentPosition = 0;
                 usedBlocks++; // 每分配一个新块,已使用的块数加 1
+
             }
 
 

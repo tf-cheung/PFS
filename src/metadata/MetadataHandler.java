@@ -70,6 +70,7 @@ public class MetadataHandler {
         file.writeInt(totalBlock);
         file.seek(Constants.BITMAP_OFFSET);
         file.write(bitmapBytes);
+
     }
 
     // Reader methods

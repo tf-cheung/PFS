@@ -58,7 +58,7 @@ public class IndexManager {
             System.out.println("Expand units: " + expandUnits);
             // 一次性扩大文件大小
             FileCreator fileCreator = new FileCreator();
-            fileCreator.extendFile(database, expandUnits * Constants.FILE_INNIT_SIZE);
+            fileCreator.extendFile(database,blockManager, expandUnits * Constants.FILE_INNIT_SIZE);
             allocatedBlocks = blockManager.allocateContiguousBlocks(requiredBlocks);
 
         }
