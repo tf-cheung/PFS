@@ -1,4 +1,5 @@
 
+import index.BTreeIndex;
 import io.BlockWriter;
 import io.CSVReader;
 import io.FileCreator;
@@ -86,8 +87,8 @@ public class Main {
         System.out.println("fcblist size: " + fcbManager.readFCBListFromMetadata(file).size());
         System.out.println("fcbname: "+ fcbManager.readFCBListFromMetadata(file).get(0).getFileName());
 
-//        blockWriter.writeBitmapToHeader();
-//        indexManager.writeIndexToFile(file,blockManager, blockWriter.getIndexTree());
+        blockWriter.writeBitmapToHeader();
+        indexManager.writeIndexToFile(file,blockManager, blockWriter.getIndexTree());
 
 
         List<FileControlBlock> blocklist = fcbManager.readFCBListFromMetadata(file);
@@ -115,21 +116,16 @@ public class Main {
         System.out.println("Block number: "+tempFCB.getUsedBlocks());
         System.out.println("Start block: "+tempFCB.getStartBlock());
 //        System.out.println("========================Search data============================");
-//        BTreeIndex result = indexManager.readIndexFromFile(file, ApplicationContext.getCsvFileName());
-//        System.out.println(result.toString());
+            BTreeIndex result = indexManager.readIndexFromFile(file, ApplicationContext.getCsvFileName());
+            System.out.println(result.toString());
 
-//        System.out.println("Block #" + result.get(22));
+        System.out.println("Block #" + result.get(22));
 //
-//        System.out.println("found movie data: " + blockWriter.readData(result.get(22),22));
+        System.out.println("found movie data: " + blockWriter.readData(result.get(22),22));
 
         metadataHandler = new MetadataHandler(file);
-        System.out.println(metadataHandler.readTotalBlock());
-        metadataHandler.readBitmapFromMetadata();
-
-//        blockManager.printBlockUsage();
-
 //        Tools.printBitmap(metadataHandler.readBitmapFromMetadata());
-        System.out.println(metadataHandler.readTotalBlock());
+//        System.out.println(metadataHandler.readTotalBlock());
 
 //        blockWriter.printIndexTree();
 //        blockWriter.readIndexFromFile();

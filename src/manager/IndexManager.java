@@ -64,6 +64,7 @@ public class IndexManager {
         }
 
         int startBlockIndex = allocatedBlocks[0];
+        System.out.println("Start block index: " + startBlockIndex);
         long indexStartPosition = (long) (startBlockIndex + Constants.HEADER_BLOCKS) * Constants.BLOCK_SIZE;
         System.out.println("Index start position: " + indexStartPosition);
         long indexEndPosition = indexStartPosition + indexDataLength;

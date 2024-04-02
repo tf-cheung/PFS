@@ -22,7 +22,7 @@ public class CSVReader {
     public CSVReader(BlockWriter blockWriter) throws IOException {
         this.writer = blockWriter;
         this.fcbManager = new FCBManager();
-        this.blockManager = new BlockManager();
+        this.blockManager = blockWriter.getBlockManager();
     }
 
     public void readAndWriteCSV(RandomAccessFile database, String csvFileName) {
@@ -55,16 +55,13 @@ public class CSVReader {
                 lineNumber++;
 //                System.out.println( "lineNumber: " + lineNumber);
             }
-//            blockManager.printBlockUsage();
 
             MetadataHandler metadataHandler = new MetadataHandler(database);
 
-//            fcb = fcbManager.findFCBByFileName(database,csvFileName);
 
             fcb.setFileSize(dataSize);
             fcb.setUsedBlocks(blockManager.getUsedBlocks());
             fcbManager.updateOrAddFCBInMetadata(database,fcb);
-
 
             dataSize = 0;
             metadataHandler.updateBitmapInMetadata(blockManager.getBitmapAsBytes(),blockManager.getTotalBlocks());

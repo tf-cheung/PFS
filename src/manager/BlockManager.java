@@ -89,10 +89,12 @@ public class BlockManager {
     }
 
 
-    public synchronized int[] allocateContiguousBlocks(int numBlocks) {
+    public synchronized int[] allocateContiguousBlocks(int numBlocks) throws IOException {
         int startIndex = 0;
         int contiguousBlocks = 0;
         int[] allocatedBlocks = new int[numBlocks];
+
+
 
         for (int i = 0; i < totalBlocks; i++) {
             if (!bitmap.get(i)) {

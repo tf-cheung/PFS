@@ -200,6 +200,9 @@ public class BlockWriter {
     public BTreeIndex getIndexTree() {
         return indexTree;
     }
+    public BlockManager getBlockManager() {
+        return blockManager;
+    }
 
 
     //setters
@@ -234,6 +237,10 @@ public class BlockWriter {
         }else{
             fcb.setStartBlock(0);
         }
+    }
+
+    public void setBlockManager(BlockManager blockManager) {
+        this.blockManager = blockManager;
     }
 
 
