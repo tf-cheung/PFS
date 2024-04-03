@@ -16,6 +16,7 @@ public class IndexManager {
         FCBManager fcbManager = new FCBManager();
         FileControlBlock fcb = fcbManager.findFCBByFileName(database,fileName);
 
+
         int startPosition = (int) fcb.getIndexStartPosition();
         int endPosition = (int) fcb.getIndexEndPosition();
 
