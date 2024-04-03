@@ -65,7 +65,6 @@ public class Main {
                             }
 
                             if (tempFCB != null) {
-
                                 System.out.println("========================FCB info===============================");
                                 System.out.println("File name: " + tempFCB.getFileName());
                                 System.out.println("Index start: " + tempFCB.getIndexStartPosition());
@@ -80,8 +79,6 @@ public class Main {
                     } else {
                         System.out.println("File already exists: " + csvFileName);
                     }
-
-
                 } else if (parts.length == 2 && parts[0].equals("find")) {
                     String[] findParts = parts[1].split("\\.");
                     if (findParts.length == 2) {
@@ -101,7 +98,49 @@ public class Main {
                     }else {
                         System.out.println("Invalid format. Please use the format: find filename.id");
                     }
-                } else if (parts[0].equalsIgnoreCase("exit")) {
+                }else if (parts.length == 2 && parts[0].equals("download")) {
+                    String fileName = parts[1];
+                    ApplicationContext.setCsvFileName(fileName);
+
+                    FCBManager fcbManager = new FCBManager();
+                    FileControlBlock fcb = fcbManager.findFCBByFileName(file, fileName);
+
+                    if (fcb == null) {
+                        System.out.println("File not found: " + fileName);
+                    } else {
+                        String outputFileName = fileName.replace(".csv", "_output.csv");
+
+                        try (PrintWriter writer = new PrintWriter(new FileWriter(outputFileName))) {
+                            BTreeIndex index = indexManager.readIndexFromFile(file, fileName);
+                            int id = 1;
+                            String data;
+
+                            while (true) {
+                                int blockId = index.get(id);
+                                if (blockId == -1) {
+                                    // Node not found, break the loop
+                                    break;
+                                }
+
+                                try {
+                                    data = blockWriter.readData(blockId, id);
+                                    if (data != null) {
+                                        writer.println(data);
+                                    }
+                                } catch (IllegalArgumentException e) {
+                                    // Invalid blockId, skip this block
+                                    System.out.println("Skipping invalid block: " + e.getMessage());
+                                }
+                                id++;
+                            }
+
+                            System.out.println("Data downloaded successfully. Output file: " + outputFileName);
+                        } catch (IOException e) {
+                            System.out.println("An error occurred while writing the output file: " + e.getMessage());
+                        }
+                    }
+
+                }else if (parts[0].equalsIgnoreCase("exit")) {
                     if (file != null) {
                         file.close();
                     }

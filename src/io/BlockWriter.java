@@ -127,23 +127,10 @@ public class BlockWriter {
         long position = (long) blockId * Constants.BLOCK_SIZE + Constants.HEADER_SIZE;
         file.seek(position);
         int bytesRead = file.read(blockData);
-//        System.out.println("Block data: " + Arrays.toString(blockData));
-
         if (bytesRead != -1) {
             String serializedData = new String(blockData, 0, bytesRead);
             //序列化后的数据
-//            System.out.println("Serialized data: " + serializedData);
             Map<String, String> movieData = serializationUtils.deserializeData(serializedData);
-//            System.out.println("====================================");
-//            System.out.println(movieData.get("1"));
-//            for (String id : movieData.keySet()) {
-//                System.out.println("ID: " + id + ", Data: " + movieData.get(id));
-//            }
-//            if (movieData.get(String.valueOf(movieId)).getMovieId().equals(String.valueOf(movieId))) {
-//                return movieData.get(String.valueOf(movieId));
-//            }
-
-
             return movieData.get(String.valueOf(movieId));
         }
 
