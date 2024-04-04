@@ -12,6 +12,31 @@ This project implements a Partitioned File System (PFS) that allows efficient st
 - Serialization and deserialization: The PFS includes utility classes for serializing and deserializing data and index structures.
 - Command-line interface: The PFS provides a command-line interface for interacting with the file system and performing various operations.
 
+
+## Database Structure Overview
+
+The database adopts a block storage model, with the initial 16 blocks (each 256 bytes) designated as header blocks. These header blocks store metadata, File Control Blocks (FCBs), and a bitmap, essential for managing the file system's metadata. This setup includes information about file locations, sizes, permissions, and the overall utilization of space.
+
+### Header Blocks Composition
+
+- **METADATA**: Holds key information about the file system, such as version, creation date, and additional relevant data. This is vital for defining the file system's configuration and operational guidelines.
+- **FCB (File Control Block)**: Associates with each file to detail its name, starting block, the total number of blocks used, file size, and index positions (start and end), including the file's creation date.
+- **Bitmap**: Employs a binary indicator for each block to denote its status (0 for free, 1 for occupied), optimizing space management by identifying free blocks for new file allocations or expansions.
+
+### File Storage and Indexing Mechanism
+
+Files are stored in blocks subsequent to the header blocks, with each file followed by an index detailing the file's structure and content for efficient access and retrieval. This index location is recorded in the file's FCB.
+
+### Architectural Highlights
+
+- **File Import and Management**: Identifies contiguous free blocks to store file data based on its size. After data entry, an index is appended, and the FCB is updated with this index position.
+- **Space Management**: The bitmap is key to swiftly pinpointing free blocks for new or expanding files.
+- **Rapid Data Retrieval**: FCBs allow for quick access to both file data and indexes, easing the process of reading and content retrieval.
+- **Scalability and Maintainability**: The system is designed to add new files without affecting the existing setup, aided by centralized management of metadata and bitmaps for enhanced system upkeep.
+
+This configuration offers an efficient and adaptable approach to file management and swift data access, integrating metadata, indexes, and data for optimal file storage.
+
+
 ## Architecture
 
 The PFS project is organized into several packages and classes:
