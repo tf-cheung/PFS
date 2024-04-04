@@ -1,6 +1,6 @@
-# PFS (Partitioned File System)
+# PFS (Portable File System)
 
-This project implements a Partitioned File System (PFS) that allows efficient storage and retrieval of data using a block-based architecture. The PFS supports various operations such as creating files, writing data to files, reading data from files, deleting files, and managing metadata.
+This project implements a Portable File System (PFS) that allows efficient storage and retrieval of data using a block-based architecture. The PFS supports various operations such as creating files, writing data to files, reading data from files, deleting files, and managing metadata.
 
 ## Features
 
