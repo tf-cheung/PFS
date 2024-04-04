@@ -13,6 +13,7 @@ public class Main {
         FileCreator fileCreator;
         String dbFile = "";
         boolean exit = false;
+        boolean fileOpened = false;
         RandomAccessFile file = null;
         Scanner scanner = new Scanner(System.in);
         IndexManager indexManager = new IndexManager();
@@ -31,7 +32,9 @@ public class Main {
                     fileCreator = new FileCreator(); // Create a new file creator
                     file = fileCreator.openFile(dbFile); // Open the file
                     blockWriter = new BlockWriter(file, blockManager); // Create a new block writer
-
+                    fileOpened = true;
+                } else if (!fileOpened && !parts[0].equalsIgnoreCase("kill") && !parts[0].equalsIgnoreCase("quit")) {
+                    System.out.println("No file opened. Please open a file first.");
                 } else if (parts.length == 2 && parts[0].equals("put")) { // Process the put command
                     csvFileName = parts[1];
                     FCBManager fcbManager = new FCBManager();
@@ -154,7 +157,6 @@ public class Main {
                         blockManager.releaseContiguousBlocks(startBlock, numBlocks); // Release the contiguous blocks
                         blockWriter.clearBlocks(startBlock, numBlocks); // Clear the blocks
                         fcbManager.removeFCBFromMetadata(file, fcb); // Remove the FCB from the metadata
-
 
                         System.out.println("File deleted successfully: " + fileName);
                     }

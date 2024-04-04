@@ -110,7 +110,7 @@ public class BlockWriter {
         // Check if the provided blockId is out of the file system's range.
         if (blockId < 0 || blockId >= blockManager.getTotalBlocks()) {
             // If the blockId is invalid, throw an exception.
-            throw new IllegalArgumentException("Invalid block ID.");
+            System.out.println("ID out of range");
         }
         byte[] blockData = new byte[Constants.BLOCK_SIZE];
         // Calculate the position in the file from which to start reading, considering the block ID and header size.
