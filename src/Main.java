@@ -178,6 +178,8 @@ public class Main {
                         File databaseFile = new File(filePath);
 
                         if (databaseFile.exists()) {
+                            assert file != null;
+                            file.close();
                             if (databaseFile.delete()) {
                                 System.out.println("PFS file deleted successfully: " + filePath);
                             } else {
