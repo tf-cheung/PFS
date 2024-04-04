@@ -11,6 +11,7 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.RandomAccessFile;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 public class CSVReader {
@@ -26,8 +27,6 @@ public class CSVReader {
     }
 
     public void readAndWriteCSV(RandomAccessFile database, String csvFileName) {
-        System.out.println("block changing: "+blockManager.getTotalBlocks());
-
         try (BufferedReader reader = new BufferedReader(new FileReader(csvFileName))) {
             String line;
             boolean isFirstLine = true;
@@ -36,9 +35,14 @@ public class CSVReader {
             // 重置读取器到文件开头
             isFirstLine = true;
 
-            FileControlBlock fcb = new FileControlBlock(fileName, 0, 0, 0, 0, 0);
+            int startBlock=blockManager.findFirstFreeBlock();
+            Date date = new Date();
+            FileControlBlock fcb = new FileControlBlock(fileName, startBlock, 0, 0, 0, 0,date);
             fcbManager.updateOrAddFCBInMetadata(database,fcb);
             BTreeIndex.resetNextId();
+
+
+
             while ((line = reader.readLine()) != null) {
                 if (isFirstLine) {
                     isFirstLine = false;
@@ -57,7 +61,6 @@ public class CSVReader {
             }
 
             MetadataHandler metadataHandler = new MetadataHandler(database);
-
 
             fcb.setFileSize(dataSize);
             fcb.setUsedBlocks(blockManager.getUsedBlocks());

@@ -1,6 +1,7 @@
 package manager;
 import constants.Constants;
 import metadata.MetadataHandler;
+import utils.ApplicationContext;
 import utils.Tools;
 
 
@@ -216,7 +217,6 @@ public class BlockManager {
     public int findFirstFreeBlock() throws IOException {
         for (int i = 0; i < totalBlocks; i++) {
             if (!isBlockUsed(i)) {
-                System.out.println("First free block: " + i);
                 return i;
             }
         }
@@ -233,6 +233,18 @@ public class BlockManager {
 //        MetadataHandler metadataHandler = new MetadataHandler(file);
 //        Vector<Boolean> bitmap = metadataHandler.readBitmapFromMetadata();
         return bitmap.get(blockIndex);
+    }
+
+    public synchronized void releaseContiguousBlocks(int startBlock, int numBlocks) throws IOException {
+        for (int i = startBlock; i < startBlock + numBlocks; i++) {
+            if (i >= 0 && i < totalBlocks) {
+                bitmap.set(i, false);
+            }
+        }
+        RandomAccessFile file = new RandomAccessFile(ApplicationContext.getDbFileName(), "rw");
+        MetadataHandler metadataHandler = new MetadataHandler(file);
+        byte[] updatedBitmapBytes = getBitmapAsBytes();
+        metadataHandler.updateBitmapInMetadata(updatedBitmapBytes, totalBlocks);
     }
 
 

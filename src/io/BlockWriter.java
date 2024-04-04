@@ -46,12 +46,9 @@ public class BlockWriter {
             if (currentBlockIndex == -1) {
                 // 如果当前没有可用的块,则找到下一个空闲块
                 currentBlockIndex = blockManager.findFirstFreeBlock();
-                System.out.println("没有空闲块。。。");
-                System.out.println("currentBlockIndex: " + currentBlockIndex);
                 currentPosition = 0;
                 blockManager.setBlockUsed( currentBlockIndex, true);
                 usedBlocks++;
-                System.out.println("Used blocks: " + usedBlocks);
             }
             if (currentBlockIndex == -1 || Constants.BLOCK_SIZE - currentPosition < dataBytes .length - dataOffset) {
                 // 如果当前块剩余空间不足,则分配新块
@@ -61,7 +58,6 @@ public class BlockWriter {
                     FileCreator fileCreator = new FileCreator();
                     fileCreator.extendFile(file,blockManager, Constants.FILE_INNIT_SIZE);
                     currentBlockIndex = blockManager.allocateBlock(currentBlockIndex + 1);
-                    System.out.println("Allocated block: " + currentBlockIndex);
                 }
 
                 currentPosition = 0;
@@ -247,7 +243,6 @@ public class BlockWriter {
         if (bytesRead != -1) {
             String blockContent = new String(blockData, 0, bytesRead);
             System.out.println("Block " + blockIndex + " content:");
-            System.out.println(blockContent);
         } else {
             System.out.println("Block " + blockIndex + " is empty.");
         }
@@ -290,5 +285,12 @@ public class BlockWriter {
         }
     }
 
-
+    public void clearBlocks(int startBlock, int numBlocks) throws IOException {
+        byte[] emptyData = new byte[Constants.BLOCK_SIZE];
+        for (int i = startBlock; i < startBlock + numBlocks; i++) {
+            long position = (long) (i + Constants.HEADER_BLOCKS) * Constants.BLOCK_SIZE;
+            file.seek(position);
+            file.write(emptyData);
+        }
+    }
 }

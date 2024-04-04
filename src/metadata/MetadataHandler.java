@@ -65,7 +65,6 @@ public class MetadataHandler {
     }
 
     public void updateBitmapInMetadata(byte[] bitmapBytes, int totalBlock) throws IOException {
-        System.out.println("Meta update Total block: " + totalBlock);
         file.seek(Constants.TOTAL_BLOCK_OFFSET);
         file.writeInt(totalBlock);
         file.seek(Constants.BITMAP_OFFSET);

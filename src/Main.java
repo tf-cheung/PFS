@@ -59,19 +59,15 @@ public class Main {
                             for (FileControlBlock block : blocklist) {
                                 if (block.getFileName().equals(ApplicationContext.getCsvFileName())) {
                                     tempFCB = block;
-                                    System.out.println("tempFCB: " + tempFCB.getFileName());
                                     break;
                                 }
                             }
 
                             if (tempFCB != null) {
-                                System.out.println("========================FCB info===============================");
-                                System.out.println("File name: " + tempFCB.getFileName());
-                                System.out.println("Index start: " + tempFCB.getIndexStartPosition());
-                                System.out.println("Index end: " + tempFCB.getIndexEndPosition());
-                                System.out.println("File size: " + tempFCB.getFileSize());
-                                System.out.println("Block number: " + tempFCB.getUsedBlocks());
-                                System.out.println("Start block: " + tempFCB.getStartBlock());
+                                System.out.println("Import successfully: " + csvFileName);
+                                System.out.println("File size: " + tempFCB.getFileSize()+ " bytes");
+//                                System.out.println("Block number: " + tempFCB.getUsedBlocks());
+//                                System.out.println("Start block: " + tempFCB.getStartBlock());
                             }
                         }else {
                             System.out.println("The specified file does not exist: " + csvFileName);
@@ -94,11 +90,12 @@ public class Main {
                         }else {
                             BTreeIndex result = indexManager.readIndexFromFile(file, ApplicationContext.getCsvFileName());
                             System.out.println("found data: " + blockWriter.readData(result.get(id), id));
+                            System.out.println("Block #" + result.get(id));
                         }
                     }else {
                         System.out.println("Invalid format. Please use the format: find filename.id");
                     }
-                }else if (parts.length == 2 && parts[0].equals("download")) {
+                }else if (parts.length == 2 && parts[0].equals("get")) {
                     String fileName = parts[1];
                     ApplicationContext.setCsvFileName(fileName);
 
@@ -140,25 +137,70 @@ public class Main {
                         }
                     }
 
-                }else if (parts[0].equalsIgnoreCase("exit")) {
+                }else if (parts.length == 2 && parts[0].equals("delete")) {
+                    String fileName = parts[1];
+                    ApplicationContext.setCsvFileName(fileName);
+
+                    FCBManager fcbManager = new FCBManager();
+                    FileControlBlock fcb = fcbManager.findFCBByFileName(file, fileName);
+
+                    if (fcb == null) {
+                        System.out.println("File not found: " + fileName);
+                    } else {
+                        int startBlock = fcb.getStartBlock();
+                        int numBlocks = fcb.getUsedBlocks();
+                        indexManager.removeIndexForFile(file, blockManager, fileName);
+                        blockManager.releaseContiguousBlocks(startBlock, numBlocks);
+                        blockWriter.clearBlocks(startBlock, numBlocks);
+                        fcbManager.removeFCBFromMetadata(file, fcb);
+
+
+                        System.out.println("File deleted successfully: " + fileName);
+                    }
+                }
+                else if (parts[0].equalsIgnoreCase("dir")) {
+                    FCBManager fcbManager = new FCBManager();
+                    List<FileControlBlock> blocklist = fcbManager.readFCBListFromMetadata(file);
+                    System.out.println("Total number of files: " + blocklist.size());
+                    for (FileControlBlock block : blocklist) {
+                        System.out.println("========================FCB info===============================");
+                        System.out.println("File name: " + block.getFileName());
+                        System.out.println("File size: " + block.getFileSize());
+                        System.out.println("Created date: " + block.getDate());
+                        System.out.println("Start block ID: " + block.getStartBlock());
+                        System.out.println("End block ID: " + (block.getStartBlock()+block.getUsedBlocks()));
+                    }
+                }else if (parts[0].equalsIgnoreCase("kill")) {
+                    if (parts.length == 2) {
+                        String fileName = parts[1];
+                        String filePath = fileName + ".db0";
+                        File databaseFile = new File(filePath);
+
+                        if (databaseFile.exists()) {
+                            if (databaseFile.delete()) {
+                                System.out.println("PFS file deleted successfully: " + filePath);
+                            } else {
+                                System.out.println("Failed to delete PFS file: " + filePath);
+                            }
+                        } else {
+                            System.out.println("PFS file does not exist: " + filePath);
+                        }
+                    } else {
+                        System.out.println("Invalid command. Usage: kill <file_name>");
+                    }
+                }
+                else if (parts[0].equalsIgnoreCase("quit")) {
                     if (file != null) {
                         file.close();
                     }
                     exit = true;
                 }else{
-                    throw new InvalidCommandException("Invalid command. Supported commands: open, put, find, exit");
+                    System.out.println("Invalid command. Supported commands: open, put, find, dir, kill, get, quit");
 
                 }
-            } catch (InvalidCommandException  e) {
-                System.err.println(e.getMessage());
             } catch (FileNotFoundException e) {
                 System.err.println("The specified file does not exist: " + csvFileName);
             }
-        }
-    }
-    public static class InvalidCommandException extends Exception {
-        public InvalidCommandException(String message) {
-            super(message);
         }
     }
 }

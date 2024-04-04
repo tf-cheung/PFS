@@ -2,24 +2,27 @@ package model;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
+import java.util.Date;
 
 public class FileControlBlock {
     private String fileName;
     private int startBlock;
     private int usedBlocks;
     private int fileSize;
+    private Date date;
     private long indexStartPosition;
     private long indexEndPosition;
 
 
 
-    public FileControlBlock(String fileName, int startBlock, int usedBlocks, int fileSize, long indexStartPosition, long indexEndPosition) {
+    public FileControlBlock(String fileName, int startBlock, int usedBlocks, int fileSize, long indexStartPosition, long indexEndPosition, Date date) {
         this.fileName = fileName;
         this.startBlock = startBlock;
         this.usedBlocks = usedBlocks;
         this.fileSize = fileSize;
         this.indexStartPosition = indexStartPosition;
         this.indexEndPosition = indexEndPosition;
+        this.date = date;
     }
 
     public String getFileName() {
@@ -69,6 +72,14 @@ public class FileControlBlock {
     public void setIndexEndPosition(long indexEndPosition) {
         this.indexEndPosition = indexEndPosition;
     }
+
+    public Date getDate() {
+        return date;
+    }
+
+    public void setDate(Date date) {
+        this.date = date;
+    }
     public byte[] toBytes() throws IOException {
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         DataOutputStream dataOutputStream = new DataOutputStream(outputStream);
@@ -90,6 +101,9 @@ public class FileControlBlock {
         // 写入索引地址
         dataOutputStream.writeLong(indexStartPosition);
         dataOutputStream.writeLong(indexEndPosition);
+
+        dataOutputStream.writeLong(date.getTime());
+
 
         // 返回字节数组
         return outputStream.toByteArray();
@@ -118,8 +132,12 @@ public class FileControlBlock {
 
         long indexEndPosition = dataInputStream.readLong();
 
+        long dateTimestamp = dataInputStream.readLong();
+        Date date = new Date(dateTimestamp);
+
+
         // 创建FileControlBlock对象并返回
-        return new FileControlBlock(fileName,startBlock,usedBlocks, fileSize, indexStartPosition,indexEndPosition);
+        return new FileControlBlock(fileName,startBlock,usedBlocks, fileSize, indexStartPosition,indexEndPosition, date);
     }
 
 

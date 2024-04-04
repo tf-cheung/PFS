@@ -45,18 +45,13 @@ public class IndexManager {
         // 将BTreeIndex转换为字节数组
         byte[] indexData = serializationUtils.serializeIndexTree(indexTree);
         int indexDataLength = indexData.length;
-        System.out.println("Index data length: " + indexDataLength);
         int requiredBlocks = (int) Math.ceil((double) indexDataLength / Constants.BLOCK_SIZE);
-        System.out.println("Required blocks: " + requiredBlocks);
         int[] allocatedBlocks = blockManager.allocateContiguousBlocks(requiredBlocks);
-        System.out.println(blockManager.getAvailableBlocks());
         int currentBlockIndex = blockManager.allocateBlock(0);
 
         if (allocatedBlocks == null) {
-            System.out.println("No contiguous blocks available");
             // 计算需要扩大的单位数
             int expandUnits = (int) Math.ceil((double) indexDataLength / Constants.FILE_INNIT_SIZE);
-            System.out.println("Expand units: " + expandUnits);
             // 一次性扩大文件大小
             FileCreator fileCreator = new FileCreator();
             fileCreator.extendFile(database,blockManager, expandUnits * Constants.FILE_INNIT_SIZE);
@@ -65,12 +60,8 @@ public class IndexManager {
         }
 
         int startBlockIndex = allocatedBlocks[0];
-        System.out.println("Start block index: " + startBlockIndex);
         long indexStartPosition = (long) (startBlockIndex + Constants.HEADER_BLOCKS) * Constants.BLOCK_SIZE;
-        System.out.println("Index start position: " + indexStartPosition);
         long indexEndPosition = indexStartPosition + indexDataLength;
-        System.out.println("Index end position: " + indexEndPosition);
-
         database.seek(indexStartPosition);
         database.write(indexData);
 
@@ -85,5 +76,36 @@ public class IndexManager {
 
         metadataHandler.updateBitmapInMetadata(blockManager.getBitmapAsBytes(),blockManager.getTotalBlocks());
 
+    }
+
+    public void removeIndexForFile(RandomAccessFile database, BlockManager blockManager, String fileName) throws IOException {
+        FCBManager fcbManager = new FCBManager();
+        FileControlBlock fcb = fcbManager.findFCBByFileName(database, fileName);
+
+
+        if (fcb != null) {
+            int startBlockIndex = (int) ((fcb.getIndexStartPosition() - Constants.HEADER_SIZE) / Constants.BLOCK_SIZE);
+            int endBlockIndex = (int) ((fcb.getIndexEndPosition() - Constants.HEADER_SIZE) / Constants.BLOCK_SIZE);
+
+            // 释放索引占用的块
+            blockManager.releaseContiguousBlocks(startBlockIndex, endBlockIndex - startBlockIndex + 1);
+
+            // 清空索引占用的块
+            byte[] emptyData = new byte[Constants.BLOCK_SIZE];
+            for (int i = startBlockIndex; i <= endBlockIndex; i++) {
+                long position = (long) (i + Constants.HEADER_BLOCKS) * Constants.BLOCK_SIZE;
+                database.seek(position);
+                database.write(emptyData);
+            }
+
+            // 更新 FCB 中的索引位置信息
+            fcb.setIndexStartPosition(0);
+            fcb.setIndexEndPosition(0);
+            fcbManager.updateOrAddFCBInMetadata(database, fcb);
+
+            // 更新位图信息
+            MetadataHandler metadataHandler = new MetadataHandler(database);
+            metadataHandler.updateBitmapInMetadata(blockManager.getBitmapAsBytes(), blockManager.getTotalBlocks());
+        }
     }
 }

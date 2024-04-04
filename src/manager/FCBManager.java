@@ -32,7 +32,6 @@ public class FCBManager {
 
     //把一个新的FCB写到METADATA中的FCBList中
     private void writeFCBListToMetadata(RandomAccessFile file, List<FileControlBlock> fcbList) throws IOException {
-        System.out.println("FCB list1: "+ readFCBListFromMetadata(file).size());
 
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         DataOutputStream dataOutputStream = new DataOutputStream(outputStream);
@@ -51,7 +50,6 @@ public class FCBManager {
         file.seek(Constants.FCB_LIST_OFFSET);
         file.write(fcbListBytes);
 
-        System.out.println("FCB list2: "+ readFCBListFromMetadata(file).size());
     }
 
     public void updateOrAddFCBInMetadata(RandomAccessFile file, FileControlBlock fcb) throws IOException {
@@ -59,7 +57,6 @@ public class FCBManager {
 
         boolean fcbExists = false;
         for (int i = 0; i < fcbList.size(); i++) {
-            System.out.println("123");
             FileControlBlock existingFCB = fcbList.get(i);
             if (existingFCB.getFileName().equals(fcb.getFileName())) {
                 fcbList.set(i, fcb);
@@ -116,6 +113,16 @@ public class FCBManager {
         }
         return null;
     }
-
+    public void removeFCBFromMetadata(RandomAccessFile file, FileControlBlock fcbToRemove) throws IOException {
+        List<FileControlBlock> fcbList = readFCBListFromMetadata(file);
+        for (FileControlBlock fcb : fcbList) {
+            if (fcb.getFileName().equals(fcbToRemove.getFileName())) {
+                System.out.println("Removing FCB: " + fcb.getFileName());
+                fcbList.remove(fcb);
+                break;
+            }
+        }
+        writeFCBListToMetadata(file, fcbList);
+    }
 
 }
