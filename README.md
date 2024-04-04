@@ -61,7 +61,7 @@ To use the PFS program, follow these steps:
     - `put <csv_file>`: Imports data from a CSV file into the PFS.
     - `find <file_name.id>`: Finds a specific data entry in a file based on the ID.
     - `get <file_name>`: Retrieves data from a file and saves it as a CSV file.
-    - `delete <file_name>`: Deletes a file from the PFS.
+    - `rm <file_name>`: Deletes a file from the PFS.
     - `dir`: Lists all the files in the PFS along with their details.
     - `kill <file_name>`: Deletes a PFS file.
     - `quit`: Exits the program.

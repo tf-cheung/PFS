@@ -138,7 +138,7 @@ public class Main {
                         }
                     }
 
-                }else if (parts.length == 2 && parts[0].equals("delete")) { // Process the delete command
+                }else if (parts.length == 2 && parts[0].equals("rm")) { // Process the delete command
                     String fileName = parts[1];
                     ApplicationContext.setCsvFileName(fileName);
 
@@ -196,7 +196,7 @@ public class Main {
                     }
                     exit = true;
                 }else{
-                    System.out.println("Invalid command. Supported commands: open, put, find, dir, kill, get, quit");
+                    System.out.println("Invalid command. Supported commands: open, put, find, dir, kill, get,rm, quit");
 
                 }
             } catch (FileNotFoundException e) {
