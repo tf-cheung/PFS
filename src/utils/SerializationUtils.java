@@ -89,21 +89,21 @@ public class SerializationUtils {
      * @throws IOException if an I/O error occurs
      */
     public BTreeIndex.Node deserializeNode(DataInputStream dis, int height) throws IOException {
-        // 读取节点的元数据
-        int id = dis.readInt(); // 读取节点的唯一标识符
-        int m = dis.readInt(); // 读取节点中的键值对数量
+        // Read the metadata of the node
+        int id = dis.readInt();
+        int m = dis.readInt();
 
         BTreeIndex.Node node = new BTreeIndex.Node(m);
         node.id = id;
 
-        // 读取节点中的键值对
+        // Read the key-value pairs of the node
         for (int i = 0; i < m; i++) {
-            int key = dis.readInt(); // 读取键
-            int val = dis.readInt(); // 读取值
+            int key = dis.readInt(); // read the key
+            int val = dis.readInt(); // read the value
 
             BTreeIndex.Entry entry;
             if (height > 0) {
-                // 如果不是叶子节点,递归反序列化子节点
+                // If it's not a leaf node, recursively deserialize the child node
                 BTreeIndex.Node child = deserializeNode(dis, height - 1);
                 entry = new BTreeIndex.Entry(key, val, child);
             } else {
@@ -141,15 +141,15 @@ public class SerializationUtils {
 
         for (String pair : pairs) {
             if (!pair.trim().isEmpty()) {
-                // 按照";"拆分，得到"id"和"data"
+                // Split the pair into "id" and "data"
                 String[] idDataPair = pair.split(";", 2);
 
                 if (idDataPair.length == 2) {
-                    // 提取"id"和"data"
+                    // Extract the "id" and "data" values
                     String id = idDataPair[0].replace("id:", "").trim();
                     String movieData = idDataPair[1].replace("data:", "").trim();
 
-                    // 添加到结果Map中
+                    // Add the values to the movie data map
                     movieDataMap.put(id, movieData);
                 }
             }

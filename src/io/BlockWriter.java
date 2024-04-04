@@ -56,86 +56,46 @@ public class BlockWriter {
         while (dataOffset < dataBytes .length) {
 
             if (currentBlockIndex == -1) {
-                // 如果当前没有可用的块,则找到下一个空闲块
+                // Find the next free block in the block manager for writing.
                 currentBlockIndex = blockManager.findFirstFreeBlock();
-                currentPosition = 0;
-                blockManager.setBlockUsed( currentBlockIndex, true);
-                usedBlocks++;
+                currentPosition = 0;    // Reset the current position within the block to the start since it's a new block.
+                blockManager.setBlockUsed( currentBlockIndex, true);    // Mark the found block as used in the block manager.
+                usedBlocks++;   // Increment the count of used blocks.
+
             }
+            // If there's no block available or the current block doesn't have enough space for the remaining data...
             if (currentBlockIndex == -1 || Constants.BLOCK_SIZE - currentPosition < dataBytes .length - dataOffset) {
-                // 如果当前块剩余空间不足,则分配新块
+                // Allocate a new block, attempting to do so sequentially by using the next block index.
                 currentBlockIndex = blockManager.allocateBlock(currentBlockIndex+1);
-//                System.out.println("Allocated block: " + currentBlockIndex);
+                // If allocation fails (returns -1), extend the file to create more blocks.
                 if (currentBlockIndex == -1) {
                     FileCreator fileCreator = new FileCreator();
                     fileCreator.extendFile(file,blockManager, Constants.FILE_INNIT_SIZE);
+                    // After extending, attempt to allocate a block again.
                     currentBlockIndex = blockManager.allocateBlock(currentBlockIndex + 1);
                 }
-
-                currentPosition = 0;
-                usedBlocks++; // 每分配一个新块,已使用的块数加 1
-
+                currentPosition = 0;    // Reset the position within the new block to start at the beginning.
+                usedBlocks++;   // Increment the used blocks counter since a new block is allocated.
             }
 
-
-
+            // Calculate the remaining amount of data that needs to be written.
             int remainingDataToWrite = dataBytes .length - dataOffset;
+            // Determine the amount of data to write in this iteration, limited by block size or remaining data size.
             int bytesToWrite = Math.min(Constants.BLOCK_SIZE - currentPosition, remainingDataToWrite);
-
+            // Calculate the file position to start writing, accounting for header blocks and current block position.
             long position = (long) (currentBlockIndex + Constants.HEADER_BLOCKS) * Constants.BLOCK_SIZE + currentPosition;
+            // Seek to the calculated position in the file.
             file.seek(position);
+            // Write the determined bytes from the data array to the file at the current position.
             file.write(dataBytes , dataOffset, bytesToWrite);
-
+            // Update the current position within the block after writing.
             currentPosition += bytesToWrite;
+            // Update the data offset to reflect the amount of data written.
             dataOffset += bytesToWrite;
-//            System.out.println("Data offset: " + dataOffset);
-
+            // Extract the data ID from the raw data map and parse it to an integer.
             int dataId = Integer.parseInt(rawData.get("id"));
+            // Update the index tree with the data ID and the block index where it's stored.
             indexTree.put(dataId, currentBlockIndex);
-//            System.out.println("Data ID: " + dataId + ", Block index: " + currentBlockIndex);
-        }
-    }
-
-
-
-    /**
-     * Calculates the current file size based on the current block index and position.
-     * @return the calculated file size
-     */
-    public long calculateFileSize() {
-        return (long) currentBlockIndex * Constants.BLOCK_SIZE + currentPosition;
-    }
-
-
-    /**
-     * Updates the file size information in the head block of the file.
-     * @throws IOException if an I/O error occurs
-     */
-    public void updateHeadBlock() throws IOException {
-        long fileSize = calculateFileSize();
-        System.out.println("File size: " + fileSize);
-
-        // 从头块的开头开始读取内容
-        file.seek(0);
-        byte[] blockData = new byte[Constants.BLOCK_SIZE];
-        int bytesRead = file.read(blockData);
-
-        // 将字节数组转换为字符串
-        String blockContent = new String(blockData, 0, bytesRead);
-
-        // 查找 "File size:" 字符串的位置
-        int fileSizeIndex = blockContent.indexOf("File size:");
-
-        if (fileSizeIndex != -1) {
-            // 如果找到了 "File size:" 字符串,将文件指针移动到该位置
-            file.seek(fileSizeIndex);
-
-            // 覆盖写入新的文件大小信息
-            file.writeBytes("File size: " + fileSize);
-        } else {
-            // 如果没有找到 "File size:" 字符串,则在头块的末尾添加文件大小信息
-            file.seek(bytesRead);
-            file.writeBytes("File size: " + fileSize + "\n");
         }
     }
 
@@ -147,16 +107,20 @@ public class BlockWriter {
      * @throws IOException if an I/O error occurs
      */
     public String readData(int blockId, int movieId) throws IOException {
+        // Check if the provided blockId is out of the file system's range.
         if (blockId < 0 || blockId >= blockManager.getTotalBlocks()) {
+            // If the blockId is invalid, throw an exception.
             throw new IllegalArgumentException("Invalid block ID.");
         }
         byte[] blockData = new byte[Constants.BLOCK_SIZE];
+        // Calculate the position in the file from which to start reading, considering the block ID and header size.
         long position = (long) blockId * Constants.BLOCK_SIZE + Constants.HEADER_SIZE;
         file.seek(position);
+        // Read the block data into the byte array and capture the number of bytes read.
         int bytesRead = file.read(blockData);
         if (bytesRead != -1) {
             String serializedData = new String(blockData, 0, bytesRead);
-            //序列化后的数据
+            // Deserialize the string back into a map to retrieve structured data.
             Map<String, String> movieData = serializationUtils.deserializeData(serializedData);
             return movieData.get(String.valueOf(movieId));
         }

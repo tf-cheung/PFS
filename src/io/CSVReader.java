@@ -35,46 +35,42 @@ public class CSVReader {
     public void readAndWriteCSV(RandomAccessFile database, String csvFileName) {
         try (BufferedReader reader = new BufferedReader(new FileReader(csvFileName))) {
             String line;
-            boolean isFirstLine = true;
-            String fileName = csvFileName; // 假设文件名与CSV文件名相同
+            boolean isFirstLine = true;  // To skip the header line in CSV if present.
+            String fileName = csvFileName; // Use the CSV file name as the file name in the database.
 
-            // 重置读取器到文件开头
-            isFirstLine = true;
+            isFirstLine = true; // To skip the header line in CSV if present.
 
-            int startBlock=blockManager.findFirstFreeBlock();
+            int startBlock=blockManager.findFirstFreeBlock(); // Find the first free block to start writing the data.
             Date date = new Date();
+            // The FCB contains metadata about the file such as the file name, start block, file size, etc.
             FileControlBlock fcb = new FileControlBlock(fileName, startBlock, 0, 0, 0, 0,date);
+            // Update the FCB in the metadata.
             fcbManager.updateOrAddFCBInMetadata(database,fcb);
+            // Reset the BTreeIndex to start from the beginning.
             BTreeIndex.resetNextId();
 
-
-
+            // Read each line from the CSV file and write it to the database.
             while ((line = reader.readLine()) != null) {
                 if (isFirstLine) {
                     isFirstLine = false;
                     continue;
                 }
-                Map<String, String> movieData = new HashMap<>();
-                movieData.put("id", String.valueOf(lineNumber));
-                movieData.put("data", line);
-
-                dataSize += movieData.toString().getBytes().length;
-//                System.out.println("Data size for line " + lineNumber + ": " + dataSize);
-
-                writer.write(blockManager,movieData);
-                lineNumber++;
-//                System.out.println( "lineNumber: " + lineNumber);
+                Map<String, String> data = new HashMap<>();
+                data.put("id", String.valueOf(lineNumber));
+                data.put("data", line);
+                dataSize += data.toString().getBytes().length; // Calculate the size of the data to be written.
+                writer.write(blockManager,data);// Write the data to the database using the BlockWriter.
+                lineNumber++; // Increment the line number.
             }
 
             MetadataHandler metadataHandler = new MetadataHandler(database);
+            fcb.setFileSize(dataSize); // Update the file size in the FCB.
+            fcb.setUsedBlocks(blockManager.getUsedBlocks()); // Update the used blocks in the FCB.
+            fcbManager.updateOrAddFCBInMetadata(database,fcb); // Update the FCB in the metadata.
 
-            fcb.setFileSize(dataSize);
-            fcb.setUsedBlocks(blockManager.getUsedBlocks());
-            fcbManager.updateOrAddFCBInMetadata(database,fcb);
-
-            dataSize = 0;
-            metadataHandler.updateBitmapInMetadata(blockManager.getBitmapAsBytes(),blockManager.getTotalBlocks());
-            lineNumber=1;
+            dataSize = 0; // Reset the data size.
+            metadataHandler.updateBitmapInMetadata(blockManager.getBitmapAsBytes(),blockManager.getTotalBlocks()); // Update the bitmap in the metadata.
+            lineNumber=1; // Reset the line number.
 
         } catch (IOException e) {
             e.printStackTrace();

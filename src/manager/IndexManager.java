@@ -28,16 +28,15 @@ public class IndexManager {
         int startPosition = (int) fcb.getIndexStartPosition();
         int endPosition = (int) fcb.getIndexEndPosition();
 
-        // 计算索引数据的长度
+        // Calculate the length of the index data
         int indexDataLength = (int) (endPosition -startPosition);
-        // 读取索引数据
+        // Read the index data from the file
         byte[] indexData = new byte[indexDataLength];
         database.seek(startPosition);
         database.read(indexData);
 
-        // 反序列化字节数组为 index.BTreeIndex 对象
+        // Deserialize the index data
         SerializationUtils serializationUtils = new SerializationUtils();
-
         BTreeIndex indexTree = serializationUtils.deserializeIndexTree(indexData);
         return indexTree;
     }
@@ -54,7 +53,7 @@ public class IndexManager {
         FCBManager fcbManager = new FCBManager();
         SerializationUtils serializationUtils = new SerializationUtils();
 
-        // 将BTreeIndex转换为字节数组
+        // Serialize the index tree
         byte[] indexData = serializationUtils.serializeIndexTree(indexTree);
         int indexDataLength = indexData.length;
         int requiredBlocks = (int) Math.ceil((double) indexDataLength / Constants.BLOCK_SIZE);
@@ -62,30 +61,32 @@ public class IndexManager {
         int currentBlockIndex = blockManager.allocateBlock(0);
 
         if (allocatedBlocks == null) {
-            // 计算需要扩大的单位数
+            // Expand the file size to accommodate the index data
             int expandUnits = (int) Math.ceil((double) indexDataLength / Constants.FILE_INNIT_SIZE);
-            // 一次性扩大文件大小
+            // Extend the file size
             FileCreator fileCreator = new FileCreator();
             fileCreator.extendFile(database,blockManager, expandUnits * Constants.FILE_INNIT_SIZE);
+            // Allocate contiguous blocks for the index data
             allocatedBlocks = blockManager.allocateContiguousBlocks(requiredBlocks);
 
         }
 
+        // Write the index data to the allocated blocks
         int startBlockIndex = allocatedBlocks[0];
         long indexStartPosition = (long) (startBlockIndex + Constants.HEADER_BLOCKS) * Constants.BLOCK_SIZE;
         long indexEndPosition = indexStartPosition + indexDataLength;
         database.seek(indexStartPosition);
         database.write(indexData);
 
+        // Update the FCB with the index position information
         String fileName = ApplicationContext.getCsvFileName();
         FileControlBlock fcb = fcbManager.findFCBByFileName(database,fileName);
         fcb.setIndexStartPosition(indexStartPosition);
         fcb.setIndexEndPosition(indexEndPosition);
 
+        // Update the FCB in the metadata
         fcbManager.updateOrAddFCBInMetadata(database,fcb);
         MetadataHandler metadataHandler = new MetadataHandler(database);
-
-
         metadataHandler.updateBitmapInMetadata(blockManager.getBitmapAsBytes(),blockManager.getTotalBlocks());
 
     }
@@ -103,15 +104,15 @@ public class IndexManager {
         FCBManager fcbManager = new FCBManager();
         FileControlBlock fcb = fcbManager.findFCBByFileName(database, fileName);
 
-
+        // If the FCB has index position information
         if (fcb != null) {
             int startBlockIndex = (int) ((fcb.getIndexStartPosition() - Constants.HEADER_SIZE) / Constants.BLOCK_SIZE);
             int endBlockIndex = (int) ((fcb.getIndexEndPosition() - Constants.HEADER_SIZE) / Constants.BLOCK_SIZE);
 
-            // 释放索引占用的块
+            // Release the contiguous blocks
             blockManager.releaseContiguousBlocks(startBlockIndex, endBlockIndex - startBlockIndex + 1);
 
-            // 清空索引占用的块
+            // Clear the index data in the blocks
             byte[] emptyData = new byte[Constants.BLOCK_SIZE];
             for (int i = startBlockIndex; i <= endBlockIndex; i++) {
                 long position = (long) (i + Constants.HEADER_BLOCKS) * Constants.BLOCK_SIZE;
@@ -119,12 +120,12 @@ public class IndexManager {
                 database.write(emptyData);
             }
 
-            // 更新 FCB 中的索引位置信息
+            // Update the FCB with the index position information
             fcb.setIndexStartPosition(0);
             fcb.setIndexEndPosition(0);
             fcbManager.updateOrAddFCBInMetadata(database, fcb);
 
-            // 更新位图信息
+            // Update the bitmap in the metadata
             MetadataHandler metadataHandler = new MetadataHandler(database);
             metadataHandler.updateBitmapInMetadata(blockManager.getBitmapAsBytes(), blockManager.getTotalBlocks());
         }

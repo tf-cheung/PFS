@@ -37,17 +37,16 @@ public class FCBManager {
 
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         DataOutputStream dataOutputStream = new DataOutputStream(outputStream);
-
-        // 写入FCB列表的长度
+        // Write the length of the FCB list
         dataOutputStream.writeInt(fcbList.size());
 
-        // 写入每个FCB对象的字节数组
+        // Serialize each FCB object to a byte array and write it to the data output stream
         for (FileControlBlock fcb : fcbList) {
             byte[] fcbBytes = fcb.toBytes();
             dataOutputStream.writeInt(fcbBytes.length);
             dataOutputStream.write(fcbBytes);
         }
-        // 将字节数组写入到文件的元数据区域
+        // Write the FCB list bytes to the file
         byte[] fcbListBytes = outputStream.toByteArray();
         file.seek(Constants.FCB_LIST_OFFSET);
         file.write(fcbListBytes);
@@ -62,10 +61,11 @@ public class FCBManager {
      */
     public void updateOrAddFCBInMetadata(RandomAccessFile file, FileControlBlock fcb) throws IOException {
         List<FileControlBlock> fcbList = readFCBListFromMetadata(file);
-
+        // Check if the FCB already exists in the list
         boolean fcbExists = false;
         for (int i = 0; i < fcbList.size(); i++) {
             FileControlBlock existingFCB = fcbList.get(i);
+            // If the FCB with the same file name already exists, update it
             if (existingFCB.getFileName().equals(fcb.getFileName())) {
                 fcbList.set(i, fcb);
                 fcbExists = true;
@@ -75,7 +75,7 @@ public class FCBManager {
         if (!fcbExists) {
             fcbList.add(fcb);
         }
-
+        // Write the updated FCB list to the metadata
         writeFCBListToMetadata(file, fcbList);
     }
 
@@ -88,21 +88,21 @@ public class FCBManager {
     public List<FileControlBlock> readFCBListFromMetadata(RandomAccessFile file) throws IOException {
         List<FileControlBlock> fcbList = new ArrayList<>();
 
-        // 移动文件指针到FCB列表的起始位置
+        // Seek to the FCB list offset in the file
         file.seek(Constants.FCB_LIST_OFFSET);
 
-        // 读取FCB列表的字节数组
+        // Read the FCB list bytes from the file
         byte[] fcbListBytes = new byte[Constants.FCB_LIST_SIZE];
         file.read(fcbListBytes);
 
-        // 反序列化字节数组为FCB对象列表
+        // Create an input stream to read the FCB list bytes
         ByteArrayInputStream inputStream = new ByteArrayInputStream(fcbListBytes);
         DataInputStream dataInputStream = new DataInputStream(inputStream);
 
-        // 读取FCB列表的长度
+        // Read the number of FCB objects in the list
         int fcbListSize = dataInputStream.readInt();
 
-        // 读取每个FCB对象的字节数组并还原为FCB对象
+        // Read each FCB object from the data input stream
         for (int i = 0; i < fcbListSize; i++) {
             int fcbBytesLength = dataInputStream.readInt();
             byte[] fcbBytes = new byte[fcbBytesLength];
@@ -122,11 +122,9 @@ public class FCBManager {
      */
     public FileControlBlock findFCBByFileName(RandomAccessFile file, String fileName) throws IOException {
         fcbList = readFCBListFromMetadata(file);
-
+        // Iterate through the FCB list to find the FCB with the specified file name
         for (FileControlBlock fcb : fcbList) {
-//            System.out.println("fcb.getFileName() = " + fcb.getFileName() + " fileName = " + fileName);
             if (fcb.getFileName().equals(fileName)) {
-//                System.out.println("Found FCB: " + fileName);
                 return fcb;
             }
         }
@@ -141,6 +139,7 @@ public class FCBManager {
      */
     public void removeFCBFromMetadata(RandomAccessFile file, FileControlBlock fcbToRemove) throws IOException {
         List<FileControlBlock> fcbList = readFCBListFromMetadata(file);
+        // Iterate through the FCB list to find the FCB to remove
         for (FileControlBlock fcb : fcbList) {
             if (fcb.getFileName().equals(fcbToRemove.getFileName())) {
                 System.out.println("Removing FCB: " + fcb.getFileName());

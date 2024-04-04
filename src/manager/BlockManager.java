@@ -10,13 +10,13 @@ import java.io.RandomAccessFile;
 import java.util.Vector;
 
 public class BlockManager {
-    private Vector<Boolean> bitmap; // 用于跟踪块的分配情况
-    private int totalBlocks; // 当前文件的总块数
+    private Vector<Boolean> bitmap;
+    private int totalBlocks;
     private RandomAccessFile file;
 
 
 
-    // 构造方法
+
     public BlockManager() {
         this.totalBlocks = (Constants.FILE_INNIT_SIZE - Constants.HEADER_SIZE) / Constants.BLOCK_SIZE;
         this.bitmap = new Vector<>(totalBlocks);
@@ -27,14 +27,15 @@ public class BlockManager {
         this.file = file;
         MetadataHandler metadataHandler = new MetadataHandler(file);
         long fileSize = metadataHandler.readDatabaseSize();
+        // Calculate the total number of blocks in the file
         this.totalBlocks = (int) ((fileSize - Constants.HEADER_SIZE) / Constants.BLOCK_SIZE);
-
+        // Read the bitmap from the metadata
         Vector<Boolean> bitmapFromMetadata = metadataHandler.readBitmapFromMetadata();
         if (bitmapFromMetadata != null && bitmapFromMetadata.size() == totalBlocks) {
-            // 如果元数据中存在有效的bitmap,则使用它
+            // If a valid bitmap exists in the metadata, use it
             this.bitmap = bitmapFromMetadata;
         } else {
-            // 如果元数据中不存在有效的bitmap,则创建一个新的bitmap
+            // Otherwise, create a new bitmap
             this.bitmap = new Vector<>(totalBlocks);
             initializeBitmap();
         }
@@ -54,6 +55,7 @@ public class BlockManager {
      * @throws IOException if an I/O error occurs
      */
     public synchronized int allocateBlock(int startIndex) throws IOException {
+        // Allocate a free block starting from the specified index
         for (int i = startIndex; i < totalBlocks; i++) {
             if (!bitmap.get(i)) {
                 bitmap.set(i, true);
@@ -73,17 +75,16 @@ public class BlockManager {
         int startIndex = 0;
         int contiguousBlocks = 0;
         int[] allocatedBlocks = new int[numBlocks];
-
-
-
+        // Allocate a contiguous set of free blocks
         for (int i = 0; i < totalBlocks; i++) {
             if (!bitmap.get(i)) {
+                // If the current block is free, increment the contiguous blocks count.
                 if (contiguousBlocks == 0) {
                     startIndex = i;
                 }
                 contiguousBlocks++;
                 if (contiguousBlocks == numBlocks) {
-                    // 找到了足够的连续块
+                    // If enough contiguous blocks are found, allocate them and return the block indices.
                     for (int j = 0; j < numBlocks; j++) {
                         bitmap.set(startIndex + j, true);
                         allocatedBlocks[j] = startIndex + j;
@@ -94,8 +95,7 @@ public class BlockManager {
                 contiguousBlocks = 0;
             }
         }
-
-        // 没有找到足够的连续块
+        // If not enough contiguous blocks are found, return null.
         return null;
     }
 
@@ -111,28 +111,26 @@ public class BlockManager {
         long newTotalBlocks = (newFileSize-Constants.HEADER_SIZE) / Constants.BLOCK_SIZE;
         int oldBitmapSize = bitmap.size();
 
-        // 创建一个新的位图向量
+        // Create a new bitmap with the updated total number of blocks
         Vector<Boolean> newBitmap = new Vector<>((int) newTotalBlocks);
 
-        // 将原有位图中的块状态复制到新位图中
+        // Copy the existing bitmap to the new bitmap
         for (int i = 0; i < oldBitmapSize; i++) {
             newBitmap.add(bitmap.get(i));
         }
 
-        // 将新增的块标记为未使用状态
+        // Add new blocks to the bitmap
         for (int i = oldBitmapSize; i < newTotalBlocks; i++) {
             newBitmap.add(false);
         }
 
-        // 用新位图替换原有位图
+        // Update the bitmap and total blocks
         this.bitmap = newBitmap;
         this.totalBlocks = (int) newTotalBlocks;
 
         MetadataHandler metadataHandler = new MetadataHandler(file);
         byte[] updatedBitmapBytes = getBitmapAsBytes();
-        metadataHandler.updateBitmapInMetadata(updatedBitmapBytes,totalBlocks);
-//        Tools.printBitmap(getBitmap(file));
-
+        metadataHandler.updateBitmapInMetadata(updatedBitmapBytes,totalBlocks); // Update the bitmap in the metadata
     }
 
     public synchronized void freeBlock(int blockIndex) {
@@ -223,11 +221,13 @@ public class BlockManager {
      * @throws IOException if an I/O error occurs
      */
     public synchronized void releaseContiguousBlocks(int startBlock, int numBlocks) throws IOException {
+        // Release a contiguous set of blocks starting from the start block index
         for (int i = startBlock; i < startBlock + numBlocks; i++) {
             if (i >= 0 && i < totalBlocks) {
                 bitmap.set(i, false);
             }
         }
+        // Update the bitmap in the metadata
         RandomAccessFile file = new RandomAccessFile(ApplicationContext.getDbFileName(), "rw");
         MetadataHandler metadataHandler = new MetadataHandler(file);
         byte[] updatedBitmapBytes = getBitmapAsBytes();

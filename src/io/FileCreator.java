@@ -13,24 +13,25 @@ public class FileCreator {
     public FileCreator()  {
     }
     /**
-     * 打开文件，如果文件不存在则创建文件
      * Open the file, if the file does not exist, create the file
-     * @param databaseName 数据库名/database name
-     * @return RandomAccessFile 对象/RandomAccessFile object
-     * @throws IOException 打开文件时可能抛出的异常/Exceptions that may be thrown when opening a file
+     * @param databaseName database name
+     * @return RandomAccessFile object
+     * @throws IOException Exceptions that may be thrown when opening a file
      */
     public RandomAccessFile openFile(String databaseName) throws IOException {
         File file = new File(databaseName);
+
+        // If the file exists, open the file
         if (file.exists()) {
             System.out.println("Database opened.");
             return new RandomAccessFile(file, "rw");
         } else {
             RandomAccessFile randomAccessFile = null;
             try {
-                randomAccessFile = new RandomAccessFile(databaseName, "rw");
-                randomAccessFile.setLength(Constants.FILE_INNIT_SIZE);
-                writeInitialMetadata(databaseName, randomAccessFile);
-                randomAccessFile.seek(Constants.DATABASE_NAME_OFFSET);
+                randomAccessFile = new RandomAccessFile(databaseName, "rw"); // Open the file in read-write mode
+                randomAccessFile.setLength(Constants.FILE_INNIT_SIZE);// Set the initial size of the file
+                writeInitialMetadata(databaseName, randomAccessFile);// Write the initial metadata to the file
+                randomAccessFile.seek(Constants.DATABASE_NAME_OFFSET);// Move the file pointer to the beginning of the file
                 System.out.println("Database created: " + databaseName);
                 return randomAccessFile;
             } catch (IOException e) {
@@ -50,16 +51,16 @@ public class FileCreator {
      */
     private void writeInitialMetadata(String databaseName, RandomAccessFile file) throws IOException {
         MetadataHandler metadataHandler = new MetadataHandler(file);
-        metadataHandler.writeInitialMetadata( databaseName);
+        metadataHandler.writeInitialMetadata( databaseName); // Write the initial metadata to the file
     }
 
     public void extendFile(RandomAccessFile file,BlockManager blockManager,  long extendSize) throws IOException {
-        long currentSize = file.length();
-        file.setLength(currentSize + extendSize);
-        MetadataHandler metadataHandler = new MetadataHandler(file);
-        metadataHandler.updateFileSizeInMetadata(currentSize + extendSize);
-        System.out.println("File extended to " + (currentSize + extendSize) + " bytes.");
-        blockManager.expand(file, currentSize + extendSize);
+        long currentSize = file.length(); // Get the current size of the file
+        file.setLength(currentSize + extendSize); // Extend the file to the new size
+        MetadataHandler metadataHandler = new MetadataHandler(file); // Get the metadata handler
+        metadataHandler.updateFileSizeInMetadata(currentSize + extendSize); // Update the file size in the metadata
+        System.out.println("File extended to " + (currentSize + extendSize) + " bytes."); // Print the new file size
+        blockManager.expand(file, currentSize + extendSize); // Expand the block manager to accommodate the new size
 
     }
 }

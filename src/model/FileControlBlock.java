@@ -84,28 +84,28 @@ public class FileControlBlock {
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         DataOutputStream dataOutputStream = new DataOutputStream(outputStream);
 
-        // 写入文件名
+        // Write the file name
         byte[] fileNameBytes = fileName.getBytes(StandardCharsets.UTF_8);
         dataOutputStream.writeInt(fileNameBytes.length);
         dataOutputStream.write(fileNameBytes);
 
 
-        // 写入起始块号
+        // Write the start block
         dataOutputStream.writeInt(startBlock);
 
         dataOutputStream.writeInt(usedBlocks);
 
-        // 写入文件大小
+        // Write the file size
         dataOutputStream.writeInt(fileSize);
 
-        // 写入索引地址
+        // Write the index position
         dataOutputStream.writeLong(indexStartPosition);
         dataOutputStream.writeLong(indexEndPosition);
 
+        // Write the date
         dataOutputStream.writeLong(date.getTime());
 
-
-        // 返回字节数组
+        // Return the byte array
         return outputStream.toByteArray();
     }
 
@@ -113,30 +113,33 @@ public class FileControlBlock {
         ByteArrayInputStream inputStream = new ByteArrayInputStream(bytes);
         DataInputStream dataInputStream = new DataInputStream(inputStream);
 
-        // 读取文件名
+        // Read the file name
         int fileNameLength = dataInputStream.readInt();
         byte[] fileNameBytes = new byte[fileNameLength];
         dataInputStream.read(fileNameBytes);
         String fileName = new String(fileNameBytes, StandardCharsets.UTF_8);
 
-        // 读取起始块号
+        // Read the start block
         int startBlock = dataInputStream.readInt();
 
+        // Read the used blocks
         int usedBlocks = dataInputStream.readInt();
 
-        // 读取文件大小
+        // Read the file size
         int fileSize = dataInputStream.readInt();
 
-        // 读取索引地址
+        // Read the index position
         long indexStartPosition = dataInputStream.readLong();
 
+        // Read the index position
         long indexEndPosition = dataInputStream.readLong();
 
+        // Read the date
         long dateTimestamp = dataInputStream.readLong();
         Date date = new Date(dateTimestamp);
 
 
-        // 创建FileControlBlock对象并返回
+        // Return the FileControlBlock object
         return new FileControlBlock(fileName,startBlock,usedBlocks, fileSize, indexStartPosition,indexEndPosition, date);
     }
 
