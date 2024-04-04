@@ -26,6 +26,12 @@ public class CSVReader {
         this.blockManager = blockWriter.getBlockManager();
     }
 
+    /**
+     * Reads data from a CSV file and writes it to the database using the BlockWriter.
+     * It also updates the FileControlBlock (FCB) and metadata.
+     * @param database the RandomAccessFile representing the database
+     * @param csvFileName the name of the CSV file to read from
+     */
     public void readAndWriteCSV(RandomAccessFile database, String csvFileName) {
         try (BufferedReader reader = new BufferedReader(new FileReader(csvFileName))) {
             String line;
@@ -75,7 +81,10 @@ public class CSVReader {
         }
     }
 
-
+    /**
+     * Closes the BlockWriter.
+     * @throws IOException if an I/O error occurs
+     */
     public void close() throws IOException {
         writer.close();
     }

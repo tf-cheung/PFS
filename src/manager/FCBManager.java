@@ -25,12 +25,14 @@ public class FCBManager {
         this.fcbList = fcbList;
     }
 
-    private void addFCB(FileControlBlock fcb) {
-        fcbList.add(fcb);
-    }
 
 
-    //把一个新的FCB写到METADATA中的FCBList中
+    /**
+     * Writes the FCBList to the metadata of the file.
+     * @param file the RandomAccessFile representing the file
+     * @param fcbList the list of FileControlBlocks to write
+     * @throws IOException if an I/O error occurs
+     */
     private void writeFCBListToMetadata(RandomAccessFile file, List<FileControlBlock> fcbList) throws IOException {
 
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
@@ -52,6 +54,12 @@ public class FCBManager {
 
     }
 
+    /**
+     * Updates or adds an FCB in the metadata of the file.
+     * @param file the RandomAccessFile representing the file
+     * @param fcb the FileControlBlock to update or add
+     * @throws IOException if an I/O error occurs
+     */
     public void updateOrAddFCBInMetadata(RandomAccessFile file, FileControlBlock fcb) throws IOException {
         List<FileControlBlock> fcbList = readFCBListFromMetadata(file);
 
@@ -64,7 +72,6 @@ public class FCBManager {
                 break;
             }
         }
-
         if (!fcbExists) {
             fcbList.add(fcb);
         }
@@ -72,6 +79,12 @@ public class FCBManager {
         writeFCBListToMetadata(file, fcbList);
     }
 
+    /**
+     * Reads the FCBList from the metadata of the file.
+     * @param file the RandomAccessFile representing the file
+     * @return the list of FileControlBlocks read from the metadata
+     * @throws IOException if an I/O error occurs
+     */
     public List<FileControlBlock> readFCBListFromMetadata(RandomAccessFile file) throws IOException {
         List<FileControlBlock> fcbList = new ArrayList<>();
 
@@ -100,7 +113,13 @@ public class FCBManager {
         return fcbList;
     }
 
-
+    /**
+     * Finds and returns the FCB with the specified file name.
+     * @param file the RandomAccessFile representing the file
+     * @param fileName the name of the file to find the FCB for
+     * @return the FileControlBlock with the specified file name, or null if not found
+     * @throws IOException if an I/O error occurs
+     */
     public FileControlBlock findFCBByFileName(RandomAccessFile file, String fileName) throws IOException {
         fcbList = readFCBListFromMetadata(file);
 
@@ -113,6 +132,13 @@ public class FCBManager {
         }
         return null;
     }
+
+    /**
+     * Removes the specified FCB from the metadata of the file.
+     * @param file the RandomAccessFile representing the file
+     * @param fcbToRemove the FileControlBlock to remove
+     * @throws IOException if an I/O error occurs
+     */
     public void removeFCBFromMetadata(RandomAccessFile file, FileControlBlock fcbToRemove) throws IOException {
         List<FileControlBlock> fcbList = readFCBListFromMetadata(file);
         for (FileControlBlock fcb : fcbList) {

@@ -9,6 +9,12 @@ import index.BTreeIndex;
 
 
 public class SerializationUtils {
+    /**
+     * Serializes the index tree to a byte array.
+     * @param indexTree the index tree to serialize
+     * @return the serialized index tree as a byte array
+     * @throws IOException if an I/O error occurs
+     */
     public byte[] serializeIndexTree(BTreeIndex indexTree) throws IOException {
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
         DataOutputStream dos = new DataOutputStream(bos);
@@ -25,6 +31,13 @@ public class SerializationUtils {
         return bos.toByteArray();
     }
 
+    /**
+     * Serializes a node of the index tree to the data output stream.
+     * @param dos the data output stream
+     * @param node the node to serialize
+     * @param height the height of the node
+     * @throws IOException if an I/O error occurs
+     */
     public void serializeNode(DataOutputStream dos, BTreeIndex.Node node, int height) throws IOException {
         // 写入节点的元数据
         dos.writeInt(node.id); // 写入节点的唯一标识符
@@ -46,6 +59,12 @@ public class SerializationUtils {
         }
     }
 
+    /**
+     * Deserializes the index tree from a byte array.
+     * @param data the serialized index tree data
+     * @return the deserialized index tree
+     * @throws IOException if an I/O error occurs
+     */
     public BTreeIndex deserializeIndexTree(byte[] data) throws IOException {
         ByteArrayInputStream bis = new ByteArrayInputStream(data);
         DataInputStream dis = new DataInputStream(bis);
@@ -62,6 +81,13 @@ public class SerializationUtils {
         return indexTree;
     }
 
+    /**
+     * Deserializes a node of the index tree from the data input stream.
+     * @param dis the data input stream
+     * @param height the height of the node
+     * @return the deserialized node
+     * @throws IOException if an I/O error occurs
+     */
     public BTreeIndex.Node deserializeNode(DataInputStream dis, int height) throws IOException {
         // 读取节点的元数据
         int id = dis.readInt(); // 读取节点的唯一标识符
@@ -91,6 +117,11 @@ public class SerializationUtils {
     }
 
 
+    /**
+     * Serializes the movie data to a string representation.
+     * @param movieData the movie data map
+     * @return the serialized movie data as a string
+     */
     public String serializeData(Map<String, String> movieData) {
         StringBuilder sb = new StringBuilder();
         sb.append("id:").append(movieData.get("id")).append(";");
@@ -98,6 +129,11 @@ public class SerializationUtils {
         return sb.toString();
     }
 
+    /**
+     * Deserializes the movie data from a string representation.
+     * @param serializedData the serialized movie data string
+     * @return the deserialized movie data as a map
+     */
     public Map<String, String> deserializeData(String serializedData) {
         Map<String, String> movieDataMap = new HashMap<>();
 

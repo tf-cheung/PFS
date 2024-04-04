@@ -9,42 +9,6 @@ import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.util.Vector;
 
-/**
- * BlockManager 类用于管理文件系统中的块分配和释放。
- * 它使用位图(bitmap)来跟踪块的使用情况,并提供了一系列方法来分配、释放和查询块的状态。
- *
- * 主要功能:
- * 1. 初始化位图,将所有块标记为未使用状态。
- * 2. 分配一个未使用的块,并将其标记为已使用状态。
- * 3. 释放一个已使用的块,并将其标记为未使用状态。
- * 4. 在 BlockWriter 扩容时,更新 BlockManager 的位图和块计数。
- * 5. 提供方法获取总块数、剩余空间以及将位图转换为字节数组。
- *
- * 同步:
- * BlockManager 类中的 expand, allocateBlock 和 freeBlock 方法被声明为同步方法,
- * 以确保在多线程环境下对位图和块的分配与释放操作是线程安全的。
- *
- * 构造方法:
- * 1. BlockManager(): 无参构造方法,用于初始化 BlockManager 对象。
- * 2. BlockManager(int fileSize): 带参构造方法,根据文件大小初始化 BlockManager 对象。
- *
- * 私有方法:
- * 1. initializeBitmap(): 初始化位图,将所有块标记为未使用状态。
- *
- * 同步方法:
- * 1. expand(long newFileSize): 在 BlockWriter 扩容时,更新 BlockManager 的位图和块计数。
- * 2. allocateBlock(int startIndex): 分配一个未使用的块,并将其标记为已使用状态。
- * 3. freeBlock(int blockIndex): 释放一个已使用的块,并将其标记为未使用状态。
- *
- * 公共方法:
- * 1. isBlockUsed(int blockIndex): 判断一个块是否被使用。
- * 2. setBlockUsed(int blockIndex, boolean used): 设置一个块的使用状态。
- * 3. getTotalBlocks(): 获取总块数。
- * 4. getBitmapAsBytes(): 将位图转换为字节数组。
- * 5. getRemainingSpace(RandomAccessFile file): 获取文件的剩余空间。
- * 6. printBitmap(): 打印位图信息,用于调试。
- */
-
 public class BlockManager {
     private Vector<Boolean> bitmap; // 用于跟踪块的分配情况
     private int totalBlocks; // 当前文件的总块数
@@ -83,12 +47,13 @@ public class BlockManager {
         }
     }
 
+    /**
+     * Allocates a free block starting from the specified index and returns the block index.
+     * @param startIndex the index to start searching from
+     * @return the allocated block index, or -1 if no free block is found
+     * @throws IOException if an I/O error occurs
+     */
     public synchronized int allocateBlock(int startIndex) throws IOException {
-//        MetadataHandler metadataHandler = new MetadataHandler(file);
-//        metadataHandler.readBitmapFromMetadata();
-
-
-//        System.out.println("startIndex: " + startIndex);
         for (int i = startIndex; i < totalBlocks; i++) {
             if (!bitmap.get(i)) {
                 bitmap.set(i, true);
@@ -98,7 +63,12 @@ public class BlockManager {
         return -1;
     }
 
-
+    /**
+     * Allocates a contiguous set of free blocks and returns an array of block indices.
+     * @param numBlocks the number of blocks to allocate
+     * @return an array of allocated block indices, or null if not enough contiguous blocks are found
+     * @throws IOException if an I/O error occurs
+     */
     public synchronized int[] allocateContiguousBlocks(int numBlocks) throws IOException {
         int startIndex = 0;
         int contiguousBlocks = 0;
@@ -129,6 +99,13 @@ public class BlockManager {
         return null;
     }
 
+
+    /**
+     * Expands the bitmap to accommodate the new file size.
+     * @param file the RandomAccessFile representing the file
+     * @param newFileSize the new file size
+     * @throws IOException if an I/O error occurs
+     */
     public synchronized void expand(RandomAccessFile file, long newFileSize) throws IOException {
 
         long newTotalBlocks = (newFileSize-Constants.HEADER_SIZE) / Constants.BLOCK_SIZE;
@@ -214,6 +191,12 @@ public class BlockManager {
             System.out.println("Block " + i + ": " + (isBlockUsed(i) ? "Used" : "Free"));
         }
     }
+
+    /**
+     * Finds and returns the index of the first free block.
+     * @return the index of the first free block, or -1 if no free block is found
+     * @throws IOException if an I/O error occurs
+     */
     public int findFirstFreeBlock() throws IOException {
         for (int i = 0; i < totalBlocks; i++) {
             if (!isBlockUsed(i)) {
@@ -223,18 +206,22 @@ public class BlockManager {
         return -1;
     }
 
-//    public boolean isBlockUsed(int blockIndex) throws IOException {
-//        MetadataHandler metadataHandler = new MetadataHandler(file);
-//        Vector<Boolean> bitmap = metadataHandler.readBitmapFromMetadata();
-//        return bitmap.get(blockIndex);
-//    }
-
+    /**
+     * Checks if the specified block is used.
+     * @param blockIndex the index of the block to check
+     * @return true if the block is used, false otherwise
+     * @throws IOException if an I/O error occurs
+     */
     public boolean isBlockUsed(int blockIndex) throws IOException {
-//        MetadataHandler metadataHandler = new MetadataHandler(file);
-//        Vector<Boolean> bitmap = metadataHandler.readBitmapFromMetadata();
         return bitmap.get(blockIndex);
     }
 
+    /**
+     * Releases a contiguous set of blocks starting from the start block index.
+     * @param startBlock the index of the start block
+     * @param numBlocks the number of blocks to release
+     * @throws IOException if an I/O error occurs
+     */
     public synchronized void releaseContiguousBlocks(int startBlock, int numBlocks) throws IOException {
         for (int i = startBlock; i < startBlock + numBlocks; i++) {
             if (i >= 0 && i < totalBlocks) {
@@ -247,7 +234,10 @@ public class BlockManager {
         metadataHandler.updateBitmapInMetadata(updatedBitmapBytes, totalBlocks);
     }
 
-
+    /**
+     * Returns the number of available (free) blocks.
+     * @return the number of available blocks
+     */
     public int getAvailableBlocks() {
         int availableBlocks = 0;
         for (boolean isUsed : bitmap) {

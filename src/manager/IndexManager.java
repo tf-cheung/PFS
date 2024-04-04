@@ -12,6 +12,14 @@ import java.io.IOException;
 import java.io.RandomAccessFile;
 
 public class IndexManager {
+
+    /**
+     * Reads the index data from the file based on the FCB information and returns the deserialized BTreeIndex.
+     * @param database the RandomAccessFile representing the database
+     * @param fileName the name of the file to read the index from
+     * @return the deserialized BTreeIndex
+     * @throws IOException if an I/O error occurs
+     */
     public BTreeIndex readIndexFromFile(RandomAccessFile database, String fileName) throws IOException {
         FCBManager fcbManager = new FCBManager();
         FileControlBlock fcb = fcbManager.findFCBByFileName(database,fileName);
@@ -26,18 +34,22 @@ public class IndexManager {
         byte[] indexData = new byte[indexDataLength];
         database.seek(startPosition);
         database.read(indexData);
-//        System.out.println("Read index data: " + Arrays.toString(indexData));
 
         // 反序列化字节数组为 index.BTreeIndex 对象
         SerializationUtils serializationUtils = new SerializationUtils();
 
         BTreeIndex indexTree = serializationUtils.deserializeIndexTree(indexData);
-//        System.out.println("Deserialized index.BTreeIndex:");
-//        System.out.println(indexTree.toString());
         return indexTree;
     }
 
-
+    /**
+     * Writes the serialized BTreeIndex to the file. It allocates contiguous blocks for the index data
+     * and updates the FCB and metadata.
+     * @param database the RandomAccessFile representing the database
+     * @param blockManager the BlockManager instance
+     * @param indexTree the BTreeIndex to write
+     * @throws IOException if an I/O error occurs
+     */
     public void writeIndexToFile(RandomAccessFile database, BlockManager blockManager, BTreeIndex indexTree) throws IOException {
         FCBManager fcbManager = new FCBManager();
         SerializationUtils serializationUtils = new SerializationUtils();
@@ -78,6 +90,15 @@ public class IndexManager {
 
     }
 
+
+    /**
+     * Removes the index data for the specified file. It releases the allocated blocks, clears the index data,
+     * updates the FCB, and updates the bitmap in the metadata.
+     * @param database the RandomAccessFile representing the database
+     * @param blockManager the BlockManager instance
+     * @param fileName the name of the file to remove the index for
+     * @throws IOException if an I/O error occurs
+     */
     public void removeIndexForFile(RandomAccessFile database, BlockManager blockManager, String fileName) throws IOException {
         FCBManager fcbManager = new FCBManager();
         FileControlBlock fcb = fcbManager.findFCBByFileName(database, fileName);

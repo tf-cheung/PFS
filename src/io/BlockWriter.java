@@ -31,12 +31,24 @@ public class BlockWriter {
         this.serializationUtils = new SerializationUtils();
     }
 
+
+    /**
+     * Writes the bitmap bytes to the header of the file.
+     * @throws IOException if an I/O error occurs
+     */
     public void writeBitmapToHeader() throws IOException {
         byte[] bitmapBytes = blockManager.getBitmapAsBytes();
         file.seek(Constants.BITMAP_OFFSET);
         file.write(bitmapBytes);
     }
 
+    /**
+     * Writes the serialized data to the blocks. It allocates new blocks if the current block is full or not available.
+     * It also updates the BTreeIndex with the data ID and block index.
+     * @param blockManager the BlockManager instance
+     * @param rawData the raw data to be written
+     * @throws IOException if an I/O error occurs
+     */
     public void write(BlockManager blockManager, Map<String, String> rawData) throws IOException {
         String serializedData = serializationUtils.serializeData(rawData);
         byte[] dataBytes  = serializedData.getBytes();
@@ -85,9 +97,20 @@ public class BlockWriter {
     }
 
 
+
+    /**
+     * Calculates the current file size based on the current block index and position.
+     * @return the calculated file size
+     */
     public long calculateFileSize() {
         return (long) currentBlockIndex * Constants.BLOCK_SIZE + currentPosition;
     }
+
+
+    /**
+     * Updates the file size information in the head block of the file.
+     * @throws IOException if an I/O error occurs
+     */
     public void updateHeadBlock() throws IOException {
         long fileSize = calculateFileSize();
         System.out.println("File size: " + fileSize);
@@ -115,6 +138,14 @@ public class BlockWriter {
             file.writeBytes("File size: " + fileSize + "\n");
         }
     }
+
+    /**
+     * Reads the data from the specified block and returns the deserialized data for the given movie ID.
+     * @param blockId the block ID
+     * @param movieId the movie ID
+     * @return the deserialized data for the given movie ID
+     * @throws IOException if an I/O error occurs
+     */
     public String readData(int blockId, int movieId) throws IOException {
         if (blockId < 0 || blockId >= blockManager.getTotalBlocks()) {
             throw new IllegalArgumentException("Invalid block ID.");
@@ -133,39 +164,11 @@ public class BlockWriter {
         return null;
     }
 
-    public void expandFileSize() throws IOException {
-        long currentSize = file.length();
-        file.setLength(currentSize+1024*1024);
-        updateFileSizeInMetadata(currentSize + 1024 * 1024);
-    }
-
-    private void updateFileSizeInMetadata(long newSize) throws IOException {
-        // 将文件指针移动到元数据中总大小字段的偏移量
-        file.seek(Constants.DATABASE_SIZE_OFFSET);
-        // 将更新后的文件大小写入元数据
-        file.writeLong(newSize);
-    }
-
-    //reset BtreeIndex
-    public void resetIndexTree() {
-        indexTree = new BTreeIndex();
-    }
-    public void addFCB(FileControlBlock fcb) {
-        this.fcb = fcb;
-        fcbList.add(fcb);
-        //print List<FileControlBlock> fcbList;
-    }
     public void close() throws IOException {
         if (file != null) {
             file.close();
         }
     }
-
-
-
-
-
-
 
 
     //getters
@@ -225,64 +228,6 @@ public class BlockWriter {
 
     public void setBlockManager(BlockManager blockManager) {
         this.blockManager = blockManager;
-    }
-
-
-    //test
-    public void printBlockContent(int blockIndex) throws IOException {
-        if (blockIndex < 0 || blockIndex >= blockManager.getTotalBlocks()) {
-            System.out.println("Invalid block index.");
-            return;
-        }
-
-        byte[] blockData = new byte[Constants.BLOCK_SIZE];
-        long position = (long) blockIndex * Constants.BLOCK_SIZE;
-        file.seek(position);
-        int bytesRead = file.read(blockData);
-
-        if (bytesRead != -1) {
-            String blockContent = new String(blockData, 0, bytesRead);
-            System.out.println("Block " + blockIndex + " content:");
-        } else {
-            System.out.println("Block " + blockIndex + " is empty.");
-        }
-    }
-
-    //打印整个Block的数据
-    public byte[] extractDataFromBlocks(int[] blockIndices) throws IOException {
-        ByteArrayOutputStream dataStream = new ByteArrayOutputStream();
-
-        for (int blockIndex : blockIndices) {
-            if (blockIndex < 0 || blockIndex >= blockManager.getTotalBlocks()) {
-                throw new IllegalArgumentException("Invalid block index: " + blockIndex);
-            }
-
-            byte[] blockData = new byte[Constants.BLOCK_SIZE];
-            long position = (long) blockIndex * Constants.BLOCK_SIZE;
-            file.seek(position);
-            int bytesRead = file.read(blockData);
-
-            if (bytesRead != -1) {
-                dataStream.write(blockData, 0, bytesRead);
-            }
-        }
-
-        return dataStream.toByteArray();
-    }
-
-    //给定文件名和所需大小，扩展文件大小
-    public static void extendFile(String fileName, long requiredSize) throws IOException {
-        File file = new File(fileName);
-
-        // 使用RandomAccessFile访问文件
-        try (RandomAccessFile raf = new RandomAccessFile(file, "rw")) {
-            long currentSize = raf.length();
-            // 如果剩余空间不足，则扩充文件大小
-            while (currentSize - raf.getFilePointer() < requiredSize) {
-                currentSize += Constants.FILE_INNIT_SIZE;
-                raf.setLength(currentSize);
-            }
-        }
     }
 
     public void clearBlocks(int startBlock, int numBlocks) throws IOException {
