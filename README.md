@@ -86,10 +86,5 @@ To use the PFS program, follow these steps:
 - Enhance the error handling and exception management to provide more robust and user-friendly error messages.
 - Implement additional features such as file permissions, user authentication, and data compression.
 
-## Contributors
-
-#### Group 9
-- Ting Fung Cheung (NEUID: 002796566)
-- Muzi Li (NEUID: 002656464)
 
 Feel free to contribute to this project by submitting pull requests or reporting issues on the project's GitHub repository.
